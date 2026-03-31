@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/fitmate}
+    username: ${DB_USERNAME:fitmate}
+    password: ${DB_PASSWORD:fitmate}
+    driver-class-name: org.postgresql.Driver
+  thymeleaf:
+    cache: false
+  flyway:
+    enabled: true
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+server:
+  servlet:
+    session:
+      timeout: 12h
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath*:mapper/*.xml
+
+app:
+  llm:
+    enabled: ${LLM_ENABLED:false}
+    base-url: ${LLM_BASE_URL:https://api.openai.com/v1}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:gpt-4o-mini}
+
+logging:
+  level:
+    com.graduation.fitmate: INFO

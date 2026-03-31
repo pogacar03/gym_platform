@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Profile')}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm profile-card">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+                        <div>
+                            <span class="eyebrow">Personalization Setup</span>
+                            <h2 class="mb-2">Build your exercise profile</h2>
+                            <p class="text-muted mb-0">Choose guided options instead of filling a raw database form. This profile powers safety filters and recommendation quality.</p>
+                        </div>
+                        <div class="profile-tip">
+                            <strong>Tip:</strong> Pick your preferred posture and target areas first. Your natural-language prompt can then refine the result.
+                        </div>
+                    </div>
+                    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+                    <form th:action="@{/profile}" th:object="${profile}" method="post">
+                        <div class="row g-4">
+                            <div class="col-lg-4">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Basic info</h5>
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <label class="form-label">Age</label>
+                                            <input class="form-control" type="number" th:field="*{age}">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Gender</label>
+                                            <select class="form-select" th:field="*{gender}">
+                                                <option value="FEMALE">Female</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="NON_BINARY">Non-binary</option>
+                                                <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Height (cm)</label>
+                                            <input class="form-control" type="number" th:field="*{heightCm}">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">Weight (kg)</label>
+                                            <input class="form-control" type="number" step="0.1" th:field="*{weightKg}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Training goal</h5>
+                                    <div class="choice-grid choice-grid-4">
+                                        <label class="choice-card">
+                                            <input type="radio" th:field="*{fitnessGoal}" value="WEIGHT_LOSS">
+                                            <span class="choice-card-title">Weight loss</span>
+                                            <span class="choice-card-copy">Low-barrier fat burn and consistency.</span>
+                                        </label>
+                                        <label class="choice-card">
+                                            <input type="radio" th:field="*{fitnessGoal}" value="MUSCLE_TONE">
+                                            <span class="choice-card-title">Muscle tone</span>
+                                            <span class="choice-card-copy">Strength, shaping, endurance.</span>
+                                        </label>
+                                        <label class="choice-card">
+                                            <input type="radio" th:field="*{fitnessGoal}" value="RECOVERY">
+                                            <span class="choice-card-title">Recovery</span>
+                                            <span class="choice-card-copy">Gentle mobility and safe return.</span>
+                                        </label>
+                                        <label class="choice-card">
+                                            <input type="radio" th:field="*{fitnessGoal}" value="CORE_STRENGTH">
+                                            <span class="choice-card-title">Core strength</span>
+                                            <span class="choice-card-copy">Stability and trunk control.</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Current level and schedule</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Activity level</label>
+                                            <select class="form-select" th:field="*{activityLevel}">
+                                                <option value="BEGINNER">Beginner</option>
+                                                <option value="INTERMEDIATE">Intermediate</option>
+                                                <option value="ADVANCED">Advanced</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Weekly frequency</label>
+                                            <select class="form-select" th:field="*{weeklyFrequency}">
+                                                <option value="2">2 sessions</option>
+                                                <option value="3">3 sessions</option>
+                                                <option value="4">4 sessions</option>
+                                                <option value="5">5 sessions</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Preferred duration</label>
+                                            <select class="form-select" th:field="*{preferredDurationMinutes}">
+                                                <option value="10">10 minutes</option>
+                                                <option value="15">15 minutes</option>
+                                                <option value="20">20 minutes</option>
+                                                <option value="30">30 minutes</option>
+                                                <option value="45">45 minutes</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Preferred posture</label>
+                                            <select class="form-select" th:field="*{posturePreference}">
+                                                <option value="">No preference</option>
+                                                <option value="SITTING">Sitting / chair</option>
+                                                <option value="STANDING">Standing</option>
+                                                <option value="FLOOR">Floor / mat</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Exercise preference</label>
+                                            <select class="form-select" th:field="*{exercisePreference}">
+                                                <option value="LOW_IMPACT">Low impact</option>
+                                                <option value="MIXED_CARDIO">Mixed cardio</option>
+                                                <option value="STRENGTH_FOCUS">Strength focus</option>
+                                                <option value="MOBILITY_FLOW">Mobility flow</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Equipment access</h5>
+                                    <p class="text-muted small mb-3">Choose all equipment you can realistically use.</p>
+                                    <input type="hidden" id="availableEquipment" name="availableEquipment" th:value="*{availableEquipment}">
+                                    <div class="chip-group" data-target-input="availableEquipment">
+                                        <button class="chip-button" type="button" data-value="NONE">No equipment</button>
+                                        <button class="chip-button" type="button" data-value="CHAIR">Chair</button>
+                                        <button class="chip-button" type="button" data-value="BANDS">Bands</button>
+                                        <button class="chip-button" type="button" data-value="DUMBBELL">Dumbbell</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Target body areas</h5>
+                                    <p class="text-muted small mb-3">Tap the highlighted muscle regions on the front and back body maps.</p>
+                                    <input type="hidden" id="targetAreas" name="targetAreas" th:value="*{targetAreas}">
+                                    <div class="body-map-layout">
+                                        <div class="body-map-card">
+                                            <div class="body-map-title">Front</div>
+                                            <div class="body-map" data-target-input="targetAreas">
+                                                <svg class="body-figure" viewBox="0 0 220 420" aria-label="Front body map">
+                                                    <g class="body-base">
+                                                        <circle cx="110" cy="38" r="24"></circle>
+                                                        <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
+                                                        <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
+                                                        <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
+                                                    </g>
+                                                    <g class="muscle-layer">
+                                                        <path class="muscle-zone" data-value="CHEST" tabindex="0" role="button" aria-label="Chest" d="M88 92 C96 84,104 82,110 86 C116 82,124 84,132 92 L138 118 C132 126,122 132,110 134 C98 132,88 126,82 118 Z"></path>
+                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M54 128 C60 118,70 116,78 122 L76 150 C74 166,74 180,80 196 L68 202 C58 186,52 168,50 150 C48 142,50 134,54 128 Z"></path>
+                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M166 128 C160 118,150 116,142 122 L144 150 C146 166,146 180,140 196 L152 202 C162 186,168 168,170 150 C172 142,170 134,166 128 Z"></path>
+                                                        <path class="muscle-zone" data-value="CORE" tabindex="0" role="button" aria-label="Core" d="M92 142 C98 138,104 136,110 136 C116 136,122 138,128 142 L132 212 C126 220,118 224,110 224 C102 224,94 220,88 212 Z"></path>
+                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M92 232 C100 228,106 228,110 230 L108 386 L88 386 L84 292 C84 268,86 244,92 232 Z"></path>
+                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M128 232 C120 228,114 228,110 230 L112 386 L132 386 L136 292 C136 268,134 244,128 232 Z"></path>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="body-map-card">
+                                            <div class="body-map-title">Back</div>
+                                            <div class="body-map" data-target-input="targetAreas">
+                                                <svg class="body-figure" viewBox="0 0 220 420" aria-label="Back body map">
+                                                    <g class="body-base">
+                                                        <circle cx="110" cy="38" r="24"></circle>
+                                                        <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
+                                                        <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
+                                                        <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
+                                                    </g>
+                                                    <g class="muscle-layer">
+                                                        <path class="muscle-zone" data-value="BACK" tabindex="0" role="button" aria-label="Back" d="M88 92 C96 84,104 82,110 86 C116 82,124 84,132 92 L136 126 C130 136,122 144,110 148 C98 144,90 136,84 126 Z"></path>
+                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M54 128 C60 118,70 116,78 122 L76 152 C74 166,74 178,80 194 L68 200 C58 184,52 166,50 148 C48 140,50 132,54 128 Z"></path>
+                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M166 128 C160 118,150 116,142 122 L144 152 C146 166,146 178,140 194 L152 200 C162 184,168 166,170 148 C172 140,170 132,166 128 Z"></path>
+                                                        <path class="muscle-zone" data-value="GLUTES" tabindex="0" role="button" aria-label="Glutes" d="M92 182 C98 176,104 174,110 176 C116 174,122 176,128 182 L130 214 C124 220,118 224,110 226 C102 224,96 220,90 214 Z"></path>
+                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M92 232 C100 228,106 228,110 230 L108 386 L88 386 L84 292 C84 268,86 244,92 232 Z"></path>
+                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M128 232 C120 228,114 228,110 230 L112 386 L132 386 L136 292 C136 268,134 244,128 232 Z"></path>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="section-panel h-100">
+                                    <h5 class="section-title">Safety and notes</h5>
+                                    <div class="choice-grid">
+                                        <label class="choice-card compact-choice">
+                                            <input type="checkbox" th:field="*{kneeSensitive}">
+                                            <span class="choice-card-title">Knee sensitive</span>
+                                            <span class="choice-card-copy">Avoid jumping or high-impact movement.</span>
+                                        </label>
+                                        <label class="choice-card compact-choice">
+                                            <input type="checkbox" th:field="*{backSensitive}">
+                                            <span class="choice-card-title">Back sensitive</span>
+                                            <span class="choice-card-copy">Reduce aggressive core and loading.</span>
+                                        </label>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label class="form-label">Injury notes</label>
+                                        <textarea class="form-control" rows="6" th:field="*{injuryNotes}" placeholder="Example: right knee discomfort during jumping, avoid floor transitions."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-dark btn-lg px-4" type="submit">Save profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const setupMultiSelect = (selector) => {
+            document.querySelectorAll(selector).forEach((container) => {
+                const inputId = container.dataset.targetInput;
+                const hiddenInput = document.getElementById(inputId);
+                const selected = new Set((hiddenInput.value || '').split(',').map(v => v.trim()).filter(Boolean));
+                const sync = () => {
+                    hiddenInput.value = Array.from(selected).join(',');
+                    container.querySelectorAll('[data-value]').forEach((button) => {
+                        button.classList.toggle('active', selected.has(button.dataset.value));
+                    });
+                };
+                container.querySelectorAll('[data-value]').forEach((button) => {
+                    const toggle = () => {
+                        const value = button.dataset.value;
+                        if (value === 'NONE') {
+                            selected.clear();
+                            selected.add('NONE');
+                        } else {
+                            selected.delete('NONE');
+                            if (selected.has(value)) {
+                                selected.delete(value);
+                            } else {
+                                selected.add(value);
+                            }
+                        }
+                        sync();
+                    };
+                    button.addEventListener('click', toggle);
+                    button.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            toggle();
+                        }
+                    });
+                });
+                sync();
+            });
+        };
+        setupMultiSelect('.chip-group');
+        setupMultiSelect('.body-map');
+    });
+</script>
+</body>
+</html>

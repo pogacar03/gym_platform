@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="nav" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">FitMate</a>
+        <div class="navbar-nav gap-2">
+            <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
+            <a class="nav-link" th:href="@{/profile}">Profile</a>
+            <a class="nav-link" th:href="@{/videos}">Library</a>
+            <a class="nav-link" th:href="@{/recommendations}">Recommend</a>
+            <a class="nav-link" th:href="@{/admin/videos}">Admin</a>
+            <a class="nav-link" th:href="@{/admin/imports}">Imports</a>
+            <a class="nav-link" th:href="@{/logout}">Logout</a>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

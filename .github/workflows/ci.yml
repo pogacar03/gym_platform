@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fitmate
+          POSTGRES_USER: fitmate
+          POSTGRES_PASSWORD: fitmate
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fitmate -d fitmate"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run tests
+        run: mvn test
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/fitmate
+          DB_USERNAME: fitmate
+          DB_PASSWORD: fitmate

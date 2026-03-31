@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.graduation.fitmate.mapper.WorkoutVideoMapper">
+
+    <select id="findRecommendationCandidates" resultType="com.graduation.fitmate.entity.WorkoutVideo">
+        SELECT
+            id,
+            title,
+            description,
+            difficulty,
+            target_goal,
+            target_body_part,
+            equipment_requirement,
+            duration_minutes,
+            impact_level,
+            safety_notes,
+            source_type,
+            source_video_id,
+            platform_channel,
+            embed_url,
+            posture_type,
+            video_url,
+            thumbnail_url,
+            is_curated,
+            active,
+            created_at,
+            updated_at
+        FROM workout_video
+        WHERE active = TRUE
+        <if test="query.relaxGoal == false and query.goal != null and query.goal != ''">
+            AND target_goal = #{query.goal}
+        </if>
+        <if test="query.maxDurationMinutes != null">
+            AND duration_minutes &lt;= #{query.maxDurationMinutes}
+        </if>
+        <if test="query.kneeSensitive">
+            AND impact_level != 'HIGH'
+        </if>
+        <if test="query.backSensitive">
+            AND target_body_part != 'CORE'
+        </if>
+        <if test="query.postureType != null and query.postureType != ''">
+            AND posture_type = #{query.postureType}
+        </if>
+        <if test="query.targetArea != null and query.targetArea != ''">
+            AND (target_body_part = #{query.targetArea} OR target_body_part = 'FULL_BODY')
+        </if>
+        <if test="query.equipment != null and query.equipment != '' and query.equipment == 'NONE' and query.postureType == 'SITTING'">
+            AND equipment_requirement IN ('NONE', 'CHAIR')
+        </if>
+        <if test="query.equipment != null and query.equipment != '' and query.equipment == 'NONE' and query.postureType != 'SITTING'">
+            AND equipment_requirement = 'NONE'
+        </if>
+        <if test="query.equipment != null and query.equipment != '' and query.equipment != 'NONE'">
+            AND (equipment_requirement = 'NONE' OR equipment_requirement = #{query.equipment})
+        </if>
+        ORDER BY
+            CASE WHEN target_goal = #{query.goal} THEN 0 ELSE 1 END,
+            CASE WHEN posture_type = #{query.postureType} THEN 0 ELSE 1 END,
+            CASE WHEN target_body_part = #{query.targetArea} THEN 0 ELSE 1 END,
+            CASE WHEN equipment_requirement = #{query.equipment} THEN 0 ELSE 1 END,
+            duration_minutes ASC
+        LIMIT 6
+    </select>
+</mapper>

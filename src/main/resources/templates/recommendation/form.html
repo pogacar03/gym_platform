@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Recommendations')}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm recommendation-panel">
+                <div class="card-body p-4">
+                    <span class="eyebrow">Natural-language search</span>
+                    <h2>Describe your ideal session</h2>
+                    <p class="text-muted">Example: 我想减脂，只有 20 分钟，无器械，而且想坐在椅子上练手臂。</p>
+                    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+                    <form th:action="@{/recommendations}" th:object="${recommendationRequest}" method="post">
+                        <div class="mb-3">
+                            <textarea class="form-control" rows="6" th:field="*{requestText}"></textarea>
+                            <div class="text-danger mt-2" th:if="${#fields.hasErrors('requestText')}" th:errors="*{requestText}"></div>
+                        </div>
+                        <div class="suggestion-list mb-3">
+                            <span class="suggestion-chip">No equipment</span>
+                            <span class="suggestion-chip">Chair workout</span>
+                            <span class="suggestion-chip">Low impact</span>
+                            <span class="suggestion-chip">Back-friendly</span>
+                        </div>
+                        <button class="btn btn-dark" type="submit">Generate recommendation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100 recommendation-results">
+                <div class="card-body p-4">
+                    <h2>Recommendation result</h2>
+                    <div th:if="${result == null}" class="text-muted">
+                        Submit your request to see matched videos, explanation, and safety notes.
+                    </div>
+                    <div th:if="${result != null}">
+                        <h4 th:text="${result.title}"></h4>
+                        <p class="text-muted" th:text="${result.explanation}"></p>
+                        <div class="alert alert-warning" th:text="${result.safetyNotes}"></div>
+                        <div class="row g-3">
+                            <div class="col-md-6" th:each="video : ${result.videos}">
+                                <div class="result-card">
+                                    <img class="result-thumbnail" th:src="${video.thumbnailUrl}" th:alt="${video.title}">
+                                    <div class="result-content">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <h5 class="result-title mb-0" th:text="${video.title}"></h5>
+                                            <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
+                                        </div>
+                                        <p class="small text-muted mt-2 mb-2" th:text="${video.description}"></p>
+                                        <div class="result-meta">
+                                            <span th:text="${video.sourceType}"></span>
+                                            <span th:text="${video.postureType}"></span>
+                                            <span th:text="${video.targetBodyPart}"></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <span class="small text-muted" th:text="${video.platformChannel}"></span>
+                                            <div class="d-flex gap-2">
+                                                <a class="btn btn-sm btn-outline-dark" th:href="@{/videos/{id}(id=${video.id})}">Preview</a>
+                                                <a class="btn btn-sm btn-dark" target="_blank" th:href="${video.videoUrl}">Open source</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="small text-muted mt-3 mb-0">Saved plan id: <span th:text="${result.planId}"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Admin Videos')}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3>Add or update workout video</h3>
+                    <p class="text-muted">Use YouTube as the primary source for HKU demos, while preserving multi-source support.</p>
+                    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+                    <form th:action="@{/admin/videos}" th:object="${videoForm}" method="post">
+                        <input type="hidden" th:field="*{id}">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input class="form-control" th:field="*{title}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3" th:field="*{description}"></textarea>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Goal</label>
+                                <select class="form-select" th:field="*{targetGoal}">
+                                    <option value="WEIGHT_LOSS">Weight loss</option>
+                                    <option value="MUSCLE_TONE">Muscle tone</option>
+                                    <option value="RECOVERY">Recovery</option>
+                                    <option value="CORE_STRENGTH">Core strength</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Body part</label>
+                                <select class="form-select" th:field="*{targetBodyPart}">
+                                    <option value="FULL_BODY">Full body</option>
+                                    <option value="ARMS">Arms</option>
+                                    <option value="CHEST">Chest</option>
+                                    <option value="BACK">Back</option>
+                                    <option value="CORE">Core</option>
+                                    <option value="GLUTES">Glutes</option>
+                                    <option value="LEGS">Legs</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Difficulty</label>
+                                <select class="form-select" th:field="*{difficulty}">
+                                    <option value="BEGINNER">Beginner</option>
+                                    <option value="INTERMEDIATE">Intermediate</option>
+                                    <option value="ADVANCED">Advanced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Equipment</label>
+                                <select class="form-select" th:field="*{equipmentRequirement}">
+                                    <option value="NONE">None</option>
+                                    <option value="CHAIR">Chair</option>
+                                    <option value="BANDS">Bands</option>
+                                    <option value="DUMBBELL">Dumbbell</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Duration</label>
+                                <input class="form-control" type="number" th:field="*{durationMinutes}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Impact</label>
+                                <select class="form-select" th:field="*{impactLevel}">
+                                    <option value="LOW">Low</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HIGH">High</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Source type</label>
+                                <select class="form-select" th:field="*{sourceType}">
+                                    <option value="YOUTUBE">YouTube</option>
+                                    <option value="BILIBILI">Bilibili</option>
+                                    <option value="LOCAL">Local</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Posture</label>
+                                <select class="form-select" th:field="*{postureType}">
+                                    <option value="SITTING">Sitting / chair</option>
+                                    <option value="STANDING">Standing</option>
+                                    <option value="FLOOR">Floor / mat</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Safety notes</label>
+                            <input class="form-control" th:field="*{safetyNotes}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Source URL</label>
+                            <input class="form-control" th:field="*{videoUrl}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Channel / creator</label>
+                            <input class="form-control" th:field="*{platformChannel}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Thumbnail URL</label>
+                            <input class="form-control" th:field="*{thumbnailUrl}">
+                        </div>
+                        <button class="btn btn-dark" type="submit">Save video</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3>Current library</h3>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Source</th>
+                                <th>Goal</th>
+                                <th>Posture</th>
+                                <th>Equipment</th>
+                                <th>Duration</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="video : ${videos}">
+                                <td th:text="${video.title}"></td>
+                                <td th:text="${video.sourceType}"></td>
+                                <td th:text="${video.targetGoal}"></td>
+                                <td th:text="${video.postureType}"></td>
+                                <td th:text="${video.equipmentRequirement}"></td>
+                                <td th:text="${video.durationMinutes + ' min'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

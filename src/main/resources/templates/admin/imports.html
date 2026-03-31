@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Import Pipeline')}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <span class="eyebrow">Low-cost content ops</span>
+            <h2 class="mb-1">Import pipeline</h2>
+            <p class="text-muted mb-0">Use channel-level imports, heuristic auto-tagging, and light-touch review instead of manual full entry.</p>
+        </div>
+    </div>
+    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h4>Add import source</h4>
+                    <p class="text-muted small">For YouTube, enter a channel ID. The scheduler will pull the channel feed every 12 hours, and you can also run it manually.</p>
+                    <div class="small text-muted border rounded p-3 mb-3 bg-light">
+                        <strong>Example</strong><br>
+                        Source name: More Life Health Seniors<br>
+                        Channel ID: UCC4TRhL4BiA7--jpxVVXcpQ<br>
+                        Channel name: More Life Health Seniors
+                    </div>
+                    <form th:action="@{/admin/imports/sources}" th:object="${sourceForm}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Source name</label>
+                            <input class="form-control" th:field="*{name}" placeholder="e.g. Chair Fitness Channel">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Source type</label>
+                            <select class="form-select" th:field="*{sourceType}">
+                                <option value="YOUTUBE_CHANNEL">YouTube channel</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Channel ID</label>
+                            <input class="form-control" th:field="*{externalId}" placeholder="UC...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Channel name</label>
+                            <input class="form-control" th:field="*{channelName}">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Default goal</label>
+                                <select class="form-select" th:field="*{defaultGoal}">
+                                    <option value="WEIGHT_LOSS">Weight loss</option>
+                                    <option value="MUSCLE_TONE">Muscle tone</option>
+                                    <option value="RECOVERY">Recovery</option>
+                                    <option value="CORE_STRENGTH">Core strength</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Default posture</label>
+                                <select class="form-select" th:field="*{defaultPosture}">
+                                    <option value="STANDING">Standing</option>
+                                    <option value="SITTING">Sitting</option>
+                                    <option value="FLOOR">Floor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Default equipment</label>
+                                <select class="form-select" th:field="*{defaultEquipment}">
+                                    <option value="NONE">None</option>
+                                    <option value="CHAIR">Chair</option>
+                                    <option value="BANDS">Bands</option>
+                                    <option value="DUMBBELL">Dumbbell</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" th:field="*{autoApproveConfident}">
+                                    <label class="form-check-label">Auto-approve confident items</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-dark mt-3" type="submit">Save source</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h4>Configured sources</h4>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Channel</th>
+                                <th>Defaults</th>
+                                <th>Stats</th>
+                                <th>Last import</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(sources)}">
+                                <td colspan="6" class="text-muted">No sources configured yet.</td>
+                            </tr>
+                            <tr th:each="source : ${sources}">
+                                <td>
+                                    <strong th:text="${source.name}"></strong>
+                                    <div class="small text-muted" th:text="${source.sourceType}"></div>
+                                    <span class="badge rounded-pill text-bg-success mt-1" th:if="${source.enabled}">Enabled</span>
+                                    <span class="badge rounded-pill text-bg-secondary mt-1" th:unless="${source.enabled}">Disabled</span>
+                                </td>
+                                <td>
+                                    <div th:text="${source.channelName}"></div>
+                                    <div class="small text-muted" th:text="${source.externalId}"></div>
+                                </td>
+                                <td class="small">
+                                    <div th:text="${source.defaultGoal}"></div>
+                                    <div th:text="${source.defaultPosture}"></div>
+                                    <div th:text="${source.defaultEquipment}"></div>
+                                </td>
+                                <td class="small">
+                                    <div>Total: <span th:text="${sourceStats[source.id].total}"></span></div>
+                                    <div>Pending: <span th:text="${sourceStats[source.id].pending}"></span></div>
+                                    <div>Approved: <span th:text="${sourceStats[source.id].approved}"></span></div>
+                                </td>
+                                <td class="small text-muted" th:text="${source.lastImportedAt} ?: 'Never'"></td>
+                                <td>
+                                    <div class="d-flex flex-column gap-2">
+                                        <form th:action="@{/admin/imports/sources/{id}/run(id=${source.id})}" method="post">
+                                            <button class="btn btn-sm btn-dark w-100" type="submit">Run now</button>
+                                        </form>
+                                        <form th:action="@{/admin/imports/sources/{id}/toggle(id=${source.id})}" method="post">
+                                            <button class="btn btn-sm btn-outline-dark w-100" type="submit" th:text="${source.enabled} ? 'Disable' : 'Enable'">Disable</button>
+                                        </form>
+                                        <form th:action="@{/admin/imports/sources/{id}/delete(id=${source.id})}" method="post">
+                                            <button class="btn btn-sm btn-outline-danger w-100" type="submit">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h4>Pending review</h4>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Video</th>
+                                <th>Auto tags</th>
+                                <th>Confidence</th>
+                                <th>Flags</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(pendingVideos)}">
+                                <td colspan="5" class="text-muted">No pending videos right now.</td>
+                            </tr>
+                            <tr th:each="video : ${pendingVideos}">
+                                <td>
+                                    <strong th:text="${video.title}"></strong>
+                                    <div class="small text-muted" th:text="${video.channelName}"></div>
+                                    <a class="small" th:href="${video.videoUrl}" target="_blank">Open source</a>
+                                </td>
+                                <td class="small">
+                                    <div th:text="${video.suggestedGoal}"></div>
+                                    <div th:text="${video.suggestedEquipment}"></div>
+                                    <div th:text="${video.suggestedPosture}"></div>
+                                    <div th:text="${video.suggestedTargetArea}"></div>
+                                </td>
+                                <td th:text="${video.confidenceScore}"></td>
+                                <td class="small text-muted" th:text="${video.safetyFlags}"></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <form th:action="@{/admin/imports/videos/{id}/approve(id=${video.id})}" method="post">
+                                            <button class="btn btn-sm btn-dark" type="submit">Approve</button>
+                                        </form>
+                                        <form th:action="@{/admin/imports/videos/{id}/reject(id=${video.id})}" method="post">
+                                            <button class="btn btn-sm btn-outline-dark" type="submit">Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

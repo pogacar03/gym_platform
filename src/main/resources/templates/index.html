@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('FitMate')}"></head>
+<body class="bg-light">
+<div class="hero-section">
+    <div class="container py-5">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <span class="badge text-bg-success mb-3">Java Graduation Project Starter</span>
+                <h1 class="display-5 fw-bold">An LLM fitness companion built for a safe, explainable demo.</h1>
+                <p class="lead text-secondary mt-3">
+                    FitMate combines structured health profiles, workout video retrieval, and AI-generated explanations
+                    so that users can receive personalized exercise suggestions without losing safety guardrails.
+                </p>
+                <div class="d-flex gap-3 mt-4">
+                    <a class="btn btn-dark btn-lg" th:href="@{/login}">Login</a>
+                    <a class="btn btn-outline-dark btn-lg" th:href="@{/register}">Register</a>
+                </div>
+                <p class="text-muted mt-4 mb-0">Demo accounts: `student / password123`, `admin / password123`</p>
+            </div>
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h5>Why this implementation is defense-friendly</h5>
+                        <ul class="mt-3 mb-0">
+                            <li>Java-first stack with MyBatis-Plus</li>
+                            <li>Rule-based safety filters before AI explanation</li>
+                            <li>Admin-manageable workout content library</li>
+                            <li>Clear demo flow from profile to recommendation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
