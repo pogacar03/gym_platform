@@ -1,11 +1,13 @@
 package com.graduation.fitmate.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class RecommendationRequest {
-    @NotBlank(message = "Please describe your workout need.")
     private String requestText;
+    private Integer quickDurationMinutes;
+    private String quickPosture;
+    private String quickEquipment;
+    private String quickIntensity;
+    private String quickTargetArea;
 }
-

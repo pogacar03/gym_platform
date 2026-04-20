@@ -14,6 +14,6 @@ public class ImportedVideoSuggestion {
     private String difficulty;
     private String impactLevel;
     private BigDecimal confidenceScore;
+    private final List<String> extraTags = new ArrayList<>();
     private final List<String> safetyFlags = new ArrayList<>();
 }
-

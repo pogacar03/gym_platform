@@ -3,6 +3,7 @@ package com.graduation.fitmate.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.graduation.fitmate.dto.ImportSourceStats;
 import com.graduation.fitmate.dto.ImportedVideoSuggestion;
+import com.graduation.fitmate.dto.ImportedVideoReviewForm;
 import com.graduation.fitmate.entity.ImportSource;
 import com.graduation.fitmate.entity.ImportedVideo;
 import com.graduation.fitmate.entity.WorkoutVideo;
@@ -62,7 +63,8 @@ public class VideoImportService {
         for (ImportSource source : sources) {
             try {
                 importFromSource(source.getId());
-            } catch (Exception ignored) {
+            } catch (Exception ex) {
+                markSourceResult(source, "FAILED", "Scheduled import failed: " + shorten(ex.getMessage()));
             }
         }
     }
@@ -74,6 +76,10 @@ public class VideoImportService {
             return 0;
         }
         List<ImportedVideo> fetched = fetchYoutubeChannelFeed(source);
+        if (fetched.isEmpty()) {
+            markSourceResult(source, "NO_UPDATES", "No new videos found or source could not be read.");
+            return 0;
+        }
         int importedCount = 0;
         for (ImportedVideo candidate : fetched) {
             Long existing = importedVideoMapper.selectCount(new LambdaQueryWrapper<ImportedVideo>()
@@ -89,6 +95,7 @@ public class VideoImportService {
             candidate.setSuggestedTargetArea(suggestion.getTargetArea());
             candidate.setSuggestedDifficulty(suggestion.getDifficulty());
             candidate.setSuggestedImpactLevel(suggestion.getImpactLevel());
+            candidate.setSuggestedExtraTags(String.join(",", suggestion.getExtraTags()));
             candidate.setSafetyFlags(String.join(",", suggestion.getSafetyFlags()));
             candidate.setConfidenceScore(suggestion.getConfidenceScore());
             candidate.setImportStatus("PENDING");
@@ -99,11 +106,21 @@ public class VideoImportService {
                     && suggestion.getConfidenceScore() != null
                     && suggestion.getConfidenceScore().compareTo(new BigDecimal("0.80")) >= 0
                     && !String.join(",", suggestion.getSafetyFlags()).contains("REVIEW")) {
-                approveImportedVideo(candidate.getId(), "Auto-approved by confidence rule");
+                ImportedVideoReviewForm reviewForm = new ImportedVideoReviewForm();
+                reviewForm.setSuggestedGoal(candidate.getSuggestedGoal());
+                reviewForm.setSuggestedEquipment(candidate.getSuggestedEquipment());
+                reviewForm.setSuggestedPosture(candidate.getSuggestedPosture());
+                reviewForm.setSuggestedTargetArea(candidate.getSuggestedTargetArea());
+                reviewForm.setSuggestedDifficulty(candidate.getSuggestedDifficulty());
+                reviewForm.setSuggestedImpactLevel(candidate.getSuggestedImpactLevel());
+                reviewForm.setSuggestedExtraTags(candidate.getSuggestedExtraTags());
+                reviewForm.setReviewNote("Auto-approved by confidence rule");
+                approveImportedVideo(candidate.getId(), reviewForm);
             }
         }
-        source.setLastImportedAt(LocalDateTime.now());
-        importSourceMapper.updateById(source);
+        markSourceResult(source, "SUCCESS", importedCount == 0
+                ? "Checked source successfully. No new staged videos."
+                : "Imported " + importedCount + " new staged videos.");
         return importedCount;
     }
 
@@ -132,13 +149,28 @@ public class VideoImportService {
     }
 
     @Transactional
-    public void approveImportedVideo(Long importedVideoId, String reviewNote) {
+    public void approveImportedVideo(Long importedVideoId, ImportedVideoReviewForm reviewForm) {
         ImportedVideo importedVideo = importedVideoMapper.selectById(importedVideoId);
         if (importedVideo == null) {
             return;
         }
+        if ("APPROVED".equals(importedVideo.getImportStatus())) {
+            return;
+        }
+
+        importedVideo.setSuggestedGoal(firstNonBlank(reviewForm.getSuggestedGoal(), importedVideo.getSuggestedGoal()));
+        importedVideo.setSuggestedEquipment(firstNonBlank(reviewForm.getSuggestedEquipment(), importedVideo.getSuggestedEquipment()));
+        importedVideo.setSuggestedPosture(firstNonBlank(reviewForm.getSuggestedPosture(), importedVideo.getSuggestedPosture()));
+        importedVideo.setSuggestedTargetArea(firstNonBlank(reviewForm.getSuggestedTargetArea(), importedVideo.getSuggestedTargetArea()));
+        importedVideo.setSuggestedDifficulty(firstNonBlank(reviewForm.getSuggestedDifficulty(), importedVideo.getSuggestedDifficulty()));
+        importedVideo.setSuggestedImpactLevel(firstNonBlank(reviewForm.getSuggestedImpactLevel(), importedVideo.getSuggestedImpactLevel()));
+        importedVideo.setSuggestedExtraTags(firstNonBlank(reviewForm.getSuggestedExtraTags(), importedVideo.getSuggestedExtraTags()));
 
         WorkoutVideo video = new WorkoutVideo();
+        WorkoutVideo existing = workoutVideoService.findBySourceReference("YOUTUBE", importedVideo.getSourceVideoId());
+        if (existing != null) {
+            video.setId(existing.getId());
+        }
         video.setTitle(importedVideo.getTitle());
         video.setDescription(importedVideo.getDescription());
         video.setDifficulty(importedVideo.getSuggestedDifficulty());
@@ -147,6 +179,7 @@ public class VideoImportService {
         video.setEquipmentRequirement(importedVideo.getSuggestedEquipment());
         video.setDurationMinutes(15);
         video.setImpactLevel(importedVideo.getSuggestedImpactLevel());
+        video.setExtraTags(importedVideo.getSuggestedExtraTags());
         video.setSafetyNotes(importedVideo.getSafetyFlags());
         video.setSourceType("YOUTUBE");
         video.setSourceVideoId(importedVideo.getSourceVideoId());
@@ -160,8 +193,31 @@ public class VideoImportService {
         workoutVideoService.save(video);
 
         importedVideo.setImportStatus("APPROVED");
-        importedVideo.setReviewNote(reviewNote);
+        importedVideo.setReviewNote(firstNonBlank(reviewForm.getReviewNote(), "Approved by admin"));
         importedVideoMapper.updateById(importedVideo);
+    }
+
+    @Transactional
+    public int approveImportedVideos(List<Long> importedVideoIds) {
+        int approvedCount = 0;
+        for (Long id : importedVideoIds) {
+            ImportedVideo video = importedVideoMapper.selectById(id);
+            if (video == null || !"PENDING".equals(video.getImportStatus())) {
+                continue;
+            }
+            ImportedVideoReviewForm reviewForm = new ImportedVideoReviewForm();
+            reviewForm.setSuggestedGoal(video.getSuggestedGoal());
+            reviewForm.setSuggestedEquipment(video.getSuggestedEquipment());
+            reviewForm.setSuggestedPosture(video.getSuggestedPosture());
+            reviewForm.setSuggestedTargetArea(video.getSuggestedTargetArea());
+            reviewForm.setSuggestedDifficulty(video.getSuggestedDifficulty());
+            reviewForm.setSuggestedImpactLevel(video.getSuggestedImpactLevel());
+            reviewForm.setSuggestedExtraTags(video.getSuggestedExtraTags());
+            reviewForm.setReviewNote("Batch approved by admin");
+            approveImportedVideo(id, reviewForm);
+            approvedCount++;
+        }
+        return approvedCount;
     }
 
     @Transactional
@@ -247,5 +303,23 @@ public class VideoImportService {
         }
         Long count = importedVideoMapper.selectCount(wrapper);
         return count == null ? 0 : count;
+    }
+
+    private void markSourceResult(ImportSource source, String status, String summary) {
+        source.setLastImportedAt(LocalDateTime.now());
+        source.setLastImportStatus(status);
+        source.setLastImportSummary(shorten(summary));
+        importSourceMapper.updateById(source);
+    }
+
+    private String shorten(String value) {
+        if (value == null || value.isBlank()) {
+            return "No details available.";
+        }
+        return value.length() > 250 ? value.substring(0, 250) : value;
+    }
+
+    private String firstNonBlank(String preferred, String fallback) {
+        return preferred != null && !preferred.isBlank() ? preferred : fallback;
     }
 }

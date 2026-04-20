@@ -42,6 +42,31 @@ public class ImportedVideoTaggingService {
         suggestion.setImpactLevel(inferImpactLevel(text));
         confidence += suggestion.getImpactLevel() != null ? 10 : 0;
 
+        if ("BEGINNER".equals(suggestion.getDifficulty())) {
+            suggestion.getExtraTags().add("BEGINNER_FRIENDLY");
+        }
+        if ("CHAIR".equals(suggestion.getEquipment())) {
+            suggestion.getExtraTags().add("CHAIR_FRIENDLY");
+        }
+        if ("LOW".equals(suggestion.getImpactLevel())) {
+            suggestion.getExtraTags().add("LOW_IMPACT");
+        }
+        if ("RECOVERY".equals(suggestion.getGoal())) {
+            suggestion.getExtraTags().add("RECOVERY_FOCUS");
+        }
+        if (containsAny(text, "senior", "older adult")) {
+            suggestion.getExtraTags().add("SENIOR_FRIENDLY");
+        }
+        if (containsAny(text, "back pain", "back friendly")) {
+            suggestion.getExtraTags().add("BACK_FRIENDLY");
+        }
+        if (containsAny(text, "knee friendly", "no jumping")) {
+            suggestion.getExtraTags().add("KNEE_FRIENDLY");
+        }
+        if (containsAny(text, "small space", "apartment")) {
+            suggestion.getExtraTags().add("SMALL_SPACE");
+        }
+
         if (text.contains("jump") || text.contains("hiit")) {
             suggestion.getSafetyFlags().add("HIGH_IMPACT_REVIEW");
             confidence -= 10;
@@ -168,4 +193,3 @@ public class ImportedVideoTaggingService {
         return null;
     }
 }
-

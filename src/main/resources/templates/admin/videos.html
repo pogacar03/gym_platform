@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Admin Videos')}"></head>
+<head th:replace="~{fragments/head :: head(#{admin.videos.pageTitle})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
 <div class="container pb-5">
@@ -8,104 +8,104 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h3>Add or update workout video</h3>
-                    <p class="text-muted">Use YouTube as the primary source for HKU demos, while preserving multi-source support.</p>
+                    <h3 th:text="#{admin.videos.title}">Add or update workout video</h3>
+                    <p class="text-muted" th:text="#{admin.videos.subtitle}">Use YouTube as the primary source for HKU demos, while preserving multi-source support.</p>
                     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
                     <form th:action="@{/admin/videos}" th:object="${videoForm}" method="post">
                         <input type="hidden" th:field="*{id}">
                         <div class="mb-3">
-                            <label class="form-label">Title</label>
+                            <label class="form-label" th:text="#{admin.videos.form.title}">Title</label>
                             <input class="form-control" th:field="*{title}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Description</label>
+                            <label class="form-label" th:text="#{admin.videos.form.description}">Description</label>
                             <textarea class="form-control" rows="3" th:field="*{description}"></textarea>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Goal</label>
+                                <label class="form-label" th:text="#{admin.videos.form.goal}">Goal</label>
                                 <select class="form-select" th:field="*{targetGoal}">
-                                    <option value="WEIGHT_LOSS">Weight loss</option>
-                                    <option value="MUSCLE_TONE">Muscle tone</option>
-                                    <option value="RECOVERY">Recovery</option>
-                                    <option value="CORE_STRENGTH">Core strength</option>
+                                    <option value="WEIGHT_LOSS" th:text="#{label.weight_loss}">Weight loss</option>
+                                    <option value="MUSCLE_TONE" th:text="#{label.muscle_tone}">Muscle tone</option>
+                                    <option value="RECOVERY" th:text="#{label.recovery}">Recovery</option>
+                                    <option value="CORE_STRENGTH" th:text="#{label.core_strength}">Core strength</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Body part</label>
+                                <label class="form-label" th:text="#{admin.videos.form.bodyPart}">Body part</label>
                                 <select class="form-select" th:field="*{targetBodyPart}">
-                                    <option value="FULL_BODY">Full body</option>
-                                    <option value="ARMS">Arms</option>
-                                    <option value="CHEST">Chest</option>
-                                    <option value="BACK">Back</option>
-                                    <option value="CORE">Core</option>
-                                    <option value="GLUTES">Glutes</option>
-                                    <option value="LEGS">Legs</option>
+                                    <option value="FULL_BODY" th:text="#{label.full_body}">Full body</option>
+                                    <option value="ARMS" th:text="#{label.arms}">Arms</option>
+                                    <option value="CHEST" th:text="#{label.chest}">Chest</option>
+                                    <option value="BACK" th:text="#{label.back}">Back</option>
+                                    <option value="CORE" th:text="#{label.core}">Core</option>
+                                    <option value="GLUTES" th:text="#{label.glutes}">Glutes</option>
+                                    <option value="LEGS" th:text="#{label.legs}">Legs</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Difficulty</label>
+                                <label class="form-label" th:text="#{admin.videos.form.difficulty}">Difficulty</label>
                                 <select class="form-select" th:field="*{difficulty}">
-                                    <option value="BEGINNER">Beginner</option>
-                                    <option value="INTERMEDIATE">Intermediate</option>
-                                    <option value="ADVANCED">Advanced</option>
+                                    <option value="BEGINNER" th:text="#{label.beginner}">Beginner</option>
+                                    <option value="INTERMEDIATE" th:text="#{label.intermediate}">Intermediate</option>
+                                    <option value="ADVANCED" th:text="#{label.advanced}">Advanced</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Equipment</label>
+                                <label class="form-label" th:text="#{admin.videos.form.equipment}">Equipment</label>
                                 <select class="form-select" th:field="*{equipmentRequirement}">
-                                    <option value="NONE">None</option>
-                                    <option value="CHAIR">Chair</option>
-                                    <option value="BANDS">Bands</option>
-                                    <option value="DUMBBELL">Dumbbell</option>
+                                    <option value="NONE" th:text="#{label.none}">None</option>
+                                    <option value="CHAIR" th:text="#{label.chair}">Chair</option>
+                                    <option value="BANDS" th:text="#{label.bands}">Bands</option>
+                                    <option value="DUMBBELL" th:text="#{label.dumbbell}">Dumbbell</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Duration</label>
+                                <label class="form-label" th:text="#{admin.videos.form.duration}">Duration</label>
                                 <input class="form-control" type="number" th:field="*{durationMinutes}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Impact</label>
+                                <label class="form-label" th:text="#{admin.videos.form.impact}">Impact</label>
                                 <select class="form-select" th:field="*{impactLevel}">
-                                    <option value="LOW">Low</option>
-                                    <option value="MEDIUM">Medium</option>
-                                    <option value="HIGH">High</option>
+                                    <option value="LOW" th:text="#{label.low}">Low</option>
+                                    <option value="MEDIUM" th:text="#{label.medium}">Medium</option>
+                                    <option value="HIGH" th:text="#{label.high}">High</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Source type</label>
+                                <label class="form-label" th:text="#{admin.videos.form.sourceType}">Source type</label>
                                 <select class="form-select" th:field="*{sourceType}">
-                                    <option value="YOUTUBE">YouTube</option>
-                                    <option value="BILIBILI">Bilibili</option>
-                                    <option value="LOCAL">Local</option>
+                                    <option value="YOUTUBE" th:text="#{label.youtube}">YouTube</option>
+                                    <option value="BILIBILI" th:text="#{label.bilibili}">Bilibili</option>
+                                    <option value="LOCAL" th:text="#{label.local}">Local</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Posture</label>
+                                <label class="form-label" th:text="#{admin.videos.form.posture}">Posture</label>
                                 <select class="form-select" th:field="*{postureType}">
-                                    <option value="SITTING">Sitting / chair</option>
-                                    <option value="STANDING">Standing</option>
-                                    <option value="FLOOR">Floor / mat</option>
+                                    <option value="SITTING" th:text="#{label.sitting}">Sitting / chair</option>
+                                    <option value="STANDING" th:text="#{label.standing}">Standing</option>
+                                    <option value="FLOOR" th:text="#{label.floor}">Floor / mat</option>
                                 </select>
                             </div>
                         </div>
                         <div class="mb-3 mt-3">
-                            <label class="form-label">Safety notes</label>
+                            <label class="form-label" th:text="#{admin.videos.form.safety}">Safety notes</label>
                             <input class="form-control" th:field="*{safetyNotes}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Source URL</label>
+                            <label class="form-label" th:text="#{admin.videos.form.sourceUrl}">Source URL</label>
                             <input class="form-control" th:field="*{videoUrl}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Channel / creator</label>
+                            <label class="form-label" th:text="#{admin.videos.form.channel}">Channel / creator</label>
                             <input class="form-control" th:field="*{platformChannel}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Thumbnail URL</label>
+                            <label class="form-label" th:text="#{admin.videos.form.thumbnail}">Thumbnail URL</label>
                             <input class="form-control" th:field="*{thumbnailUrl}">
                         </div>
-                        <button class="btn btn-dark" type="submit">Save video</button>
+                        <button class="btn btn-dark" type="submit" th:text="#{admin.videos.save}">Save video</button>
                     </form>
                 </div>
             </div>
@@ -113,27 +113,91 @@
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h3>Current library</h3>
+                    <div class="d-flex justify-content-between align-items-end gap-3 mb-3 flex-wrap">
+                        <div>
+                            <h3 class="mb-1" th:text="#{admin.videos.library}">Current library</h3>
+                            <p class="text-muted mb-0" th:text="#{admin.videos.library.subtitle}">Keep tags complete so recommendation quality stays high.</p>
+                        </div>
+                        <div class="tag-quality-panel admin-quality-panel">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span th:text="#{admin.videos.missing}">Missing tag videos</span>
+                                <strong th:text="${missingTagCount}"></strong>
+                            </div>
+                            <p class="small text-muted mb-0 mt-2" th:text="#{admin.videos.missing.help}">Videos missing goal, body area, posture, equipment, or impact tags are surfaced below for quick cleanup.</p>
+                        </div>
+                    </div>
+                    <div class="card border-0 bg-light mb-4" th:if="${!#lists.isEmpty(missingTagVideos)}">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+                                <h5 class="mb-0" th:text="#{admin.videos.cleanup}">Tag cleanup queue</h5>
+                                <form th:action="@{/admin/videos/batch-autofill-tags}" method="post" id="batchVideoAutofillForm">
+                                    <button class="btn btn-dark btn-sm" type="submit" th:text="#{admin.videos.bulk}">Bulk auto-fill selected</button>
+                                </form>
+                            </div>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap border rounded-4 p-3 bg-white"
+                                     th:each="video : ${missingTagVideos}">
+                                    <div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input batch-video-checkbox" type="checkbox" th:value="${video.id}">
+                                            <label class="form-check-label small text-muted" th:text="#{admin.videos.select}">Select for bulk auto-fill</label>
+                                        </div>
+                                        <strong th:text="${video.title}"></strong>
+                                        <div class="suggestion-list mt-2">
+                                            <span class="suggestion-chip" th:text="${@ui.label(video.targetGoal)}"></span>
+                                            <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>
+                                            <span class="suggestion-chip" th:text="${@ui.label(video.postureType)}"></span>
+                                            <span class="suggestion-chip" th:text="${@ui.label(video.equipmentRequirement)}"></span>
+                                            <span class="suggestion-chip" th:text="${@ui.label(video.impactLevel)}"></span>
+                                            <span class="suggestion-chip" th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}" th:text="${tag}"></span>
+                                        </div>
+                                    </div>
+                                    <form th:action="@{/admin/videos/{id}/autofill-tags(id=${video.id})}" method="post">
+                                        <button class="btn btn-dark btn-sm" type="submit" th:text="#{admin.videos.autofill}">Auto-fill tags</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm" th:classappend="${missingOnly} ? ' btn-outline-dark' : ' btn-dark'" th:href="@{/admin/videos}" th:text="#{admin.videos.filter.all}">All videos</a>
+                            <a class="btn btn-sm" th:classappend="${missingOnly} ? ' btn-dark' : ' btn-outline-dark'" th:href="@{/admin/videos(missingOnly=true)}" th:text="#{admin.videos.filter.missing}">Missing tags only</a>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Title</th>
-                                <th>Source</th>
-                                <th>Goal</th>
-                                <th>Posture</th>
-                                <th>Equipment</th>
-                                <th>Duration</th>
+                                <th th:text="#{admin.videos.table.title}">Title</th>
+                                <th th:text="#{admin.videos.table.source}">Source</th>
+                                <th th:text="#{admin.videos.table.goal}">Goal</th>
+                                <th th:text="#{admin.videos.table.posture}">Posture</th>
+                                <th th:text="#{admin.videos.table.equipment}">Equipment</th>
+                                <th th:text="#{admin.videos.extra}">Extra tags</th>
+                                <th th:text="#{admin.videos.table.duration}">Duration</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr th:each="video : ${videos}">
                                 <td th:text="${video.title}"></td>
-                                <td th:text="${video.sourceType}"></td>
-                                <td th:text="${video.targetGoal}"></td>
-                                <td th:text="${video.postureType}"></td>
-                                <td th:text="${video.equipmentRequirement}"></td>
+                                <td th:text="${@ui.label(video.sourceType)}"></td>
+                                <td th:text="${@ui.label(video.targetGoal)}"></td>
+                                <td th:text="${@ui.label(video.postureType)}"></td>
+                                <td th:text="${@ui.label(video.equipmentRequirement)}"></td>
+                                <td>
+                                    <div class="suggestion-list">
+                                        <span class="suggestion-chip" th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}" th:text="${tag}"></span>
+                                    </div>
+                                </td>
                                 <td th:text="${video.durationMinutes + ' min'}"></td>
+                                <td>
+                                    <form th:if="${@workoutVideoService.hasMissingTags(video)}"
+                                          th:action="@{/admin/videos/{id}/autofill-tags(id=${video.id})}" method="post">
+                                        <button class="btn btn-outline-dark btn-sm" type="submit" th:text="#{admin.videos.autofill}">Auto-fill</button>
+                                    </form>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -143,5 +207,26 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const batchForm = document.getElementById('batchVideoAutofillForm');
+        if (batchForm) {
+            const syncSelectedIds = () => {
+                batchForm.querySelectorAll('input[name="selectedIds"]').forEach((input) => input.remove());
+                document.querySelectorAll('.batch-video-checkbox:checked').forEach((checkbox) => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'selectedIds';
+                    hidden.value = checkbox.value;
+                    batchForm.appendChild(hidden);
+                });
+            };
+            document.querySelectorAll('.batch-video-checkbox').forEach((checkbox) => {
+                checkbox.addEventListener('change', syncSelectedIds);
+            });
+            syncSelectedIds();
+        }
+    });
+</script>
 </body>
 </html>

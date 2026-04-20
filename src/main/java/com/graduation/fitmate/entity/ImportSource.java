@@ -21,7 +21,8 @@ public class ImportSource {
     private Boolean autoApproveConfident;
     private Boolean enabled;
     private LocalDateTime lastImportedAt;
+    private String lastImportStatus;
+    private String lastImportSummary;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

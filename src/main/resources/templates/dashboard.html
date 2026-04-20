@@ -1,48 +1,247 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
+<head th:replace="~{fragments/head :: head(#{dashboard.pageTitle})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
-<div class="container pb-5">
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h2>Welcome to FitMate</h2>
-                    <p class="text-muted">Use your profile and natural-language input to get workout recommendations with safety guardrails.</p>
-                    <a class="btn btn-dark" th:href="@{/recommendations}">Start a recommendation</a>
-                </div>
+<div class="container page-shell dashboard-shell" th:with="view=${dashboard}">
+    <div class="dashboard-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{dashboard.eyebrow}">Daily fitness cockpit</span>
+            <h1 class="display-6 mb-2"><span th:text="#{dashboard.welcome}">Welcome back,</span> <span th:text="${view.displayName}"></span></h1>
+            <p class="text-muted mb-3" th:text="#{dashboard.subtitle}">Your dashboard now combines plan focus, progress rings, and cleaner tagged content so the product feels like a real fitness companion.</p>
+            <div class="suggestion-list" th:if="${!#lists.isEmpty(view.focusTags)}">
+                <span class="suggestion-chip active" th:each="tag : ${view.focusTags}" th:text="${@ui.label(tag)}"></span>
             </div>
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-body p-4">
-                    <h4>Featured library videos</h4>
-                        <div class="list-group mt-3">
-                            <div class="list-group-item" th:each="video : ${videos}">
-                                <div class="d-flex justify-content-between">
-                                    <strong th:text="${video.title}"></strong>
-                                    <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
+        </div>
+        <div class="hero-actions">
+            <a class="btn btn-dark btn-lg" th:href="@{/recommendations}" th:text="#{dashboard.start}">Start today's recommendation</a>
+            <a class="btn btn-outline-dark btn-lg" th:href="@{/profile}" th:text="#{dashboard.refine}">Refine profile</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm dashboard-card progress-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="metric-label" th:text="#{dashboard.today}">Today's progress</div>
+                                    <h3 class="metric-value"><span th:text="${view.completedTodayMinutes}"></span>/<span th:text="${view.dailyTargetMinutes}"></span> min</h3>
+                                    <p class="text-muted mb-0" th:text="#{dashboard.today.help}">Close the ring by completing your latest plan or logging another short session.</p>
                                 </div>
-                                <div class="small text-muted mt-1" th:text="${video.description}"></div>
-                                <a class="small d-inline-block mt-2" th:href="@{/videos/{id}(id=${video.id})}">Preview video</a>
+                                <div class="progress-ring" th:style="${@ui.progressStyle(view.todayProgressPercent, '#0f766e')}">
+                                    <div class="progress-ring-inner">
+                                        <strong th:text="${view.todayProgressPercent + '%'}"></strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <form th:if="${view.latestPlan != null}" th:action="@{/dashboard/complete-latest}" method="post" class="mt-3">
+                                <button class="btn btn-dark" type="submit" th:text="#{dashboard.complete}">Mark latest plan as done</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm dashboard-card progress-card accent-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="metric-label" th:text="#{dashboard.weekly}">Weekly consistency</div>
+                                    <h3 class="metric-value"><span th:text="${view.completedThisWeekMinutes}"></span>/<span th:text="${view.weeklyTargetMinutes}"></span> min</h3>
+                                    <p class="text-muted mb-0"><span th:text="${view.activeDaysThisWeek}"></span> <span th:text="#{dashboard.weekly.help}">active days this week. Stay steady instead of chasing intensity.</span></p>
+                                </div>
+                                <div class="progress-ring warm-ring" th:style="${@ui.progressStyle(view.weeklyProgressPercent, '#ea580c')}">
+                                    <div class="progress-ring-inner">
+                                        <strong th:text="${view.weeklyProgressPercent + '%'}"></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card plan-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.plan.eyebrow}">Fitness plan</span>
+                                    <h3 class="mb-2" th:text="#{dashboard.plan.title}">Current plan snapshot</h3>
+                                    <p class="text-muted mb-2" th:if="${view.nextSuggestedSession != null}">
+                                        <span th:text="#{dashboard.next}">Next suggested session</span>:
+                                        <strong th:text="${view.nextSuggestedSession}"></strong>
+                                    </p>
+                                    <div th:if="${view.latestPlan != null}">
+                                        <p class="fw-semibold mb-1" th:text="${view.latestPlan.title}"></p>
+                                        <p class="text-muted mb-3" th:text="${view.latestPlan.summary}"></p>
+                                    </div>
+                                    <div th:if="${view.latestPlan == null}">
+                                        <p class="text-muted mb-3" th:text="#{dashboard.plan.empty}">You do not have a saved plan yet. Generate a recommendation to build your first guided session.</p>
+                                    </div>
+                                </div>
+                                <div class="mini-stats">
+                                    <div class="mini-stat">
+                                        <span th:text="#{dashboard.stats.completed}">Completed plans</span>
+                                        <strong th:text="${view.completedPlanCount}"></strong>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span th:text="#{dashboard.stats.recommendations}">Recommendations</span>
+                                        <strong th:text="${view.recommendationCount}"></strong>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span th:text="#{dashboard.stats.tagged}">Tagged videos</span>
+                                        <strong th:text="${view.taggedVideoCount + '/' + view.featuredVideos.size()}"></strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="suggestion-list mt-3" th:if="${!#lists.isEmpty(view.focusTags)}">
+                                <span class="suggestion-chip" th:each="tag : ${view.focusTags}" th:text="${@ui.label(tag)}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.rhythm.eyebrow}">Weekly rhythm</span>
+                                    <h3 class="mb-1" th:text="#{dashboard.rhythm.title}">Plan cadence</h3>
+                                    <p class="text-muted mb-0" th:text="#{dashboard.rhythm.subtitle}">A simple rhythm strip helps your plan feel structured instead of random.</p>
+                                </div>
+                                <span class="small text-muted" th:text="#{dashboard.rhythm.legend}">Completed days are filled. Planned days are outlined.</span>
+                            </div>
+                            <div class="weekly-rhythm">
+                                <div class="day-pill"
+                                     th:each="day : ${view.weeklyRhythm}"
+                                     th:classappend="${day.completed} ? ' completed' : (${day.planned} ? ' planned' : '')">
+                                    <span th:text="${day.label}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.recent.eyebrow}">Recent activity</span>
+                                    <h3 class="mb-1" th:text="#{dashboard.recent.title}">Training timeline</h3>
+                                    <p class="text-muted mb-0" th:text="#{dashboard.recent.subtitle}">Recent completions and the latest recommendation theme help the demo feel like a living system.</p>
+                                </div>
+                            </div>
+                            <div class="timeline-list" th:if="${!#lists.isEmpty(view.recentLogs)}">
+                                <div class="timeline-item" th:each="log : ${view.recentLogs}">
+                                    <div class="timeline-dot"></div>
+                                    <div>
+                                        <strong th:text="#{dashboard.recent.completed}">Completed session</strong>
+                                        <div class="small text-muted" th:text="${@ui.formatDateTime(log.completedAt)}"></div>
+                                        <div class="small text-muted" th:text="${@ui.safeText(log.feedbackNote, @ui.message('dashboard.recent.defaultNote', 'Dashboard completion'))}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-muted" th:if="${#lists.isEmpty(view.recentLogs)}" th:text="#{dashboard.recent.empty}">No workouts logged yet. Complete your latest plan to start a visible training timeline.</div>
+                            <div class="recent-recommendation-card mt-3" th:if="${view.lastRecommendationSummary != null}">
+                                <span class="eyebrow" th:text="#{dashboard.recent.lastRec}">Latest recommendation theme</span>
+                                <p class="mb-0" th:text="${view.lastRecommendationSummary}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.library.eyebrow}">Curated library</span>
+                                    <h3 class="mb-1" th:text="#{dashboard.library.title}">Featured videos</h3>
+                                    <p class="text-muted mb-0" th:text="#{dashboard.library.subtitle}">Cleaner tag presentation so missing metadata does not make the app feel broken.</p>
+                                </div>
+                                <a class="btn btn-outline-dark btn-sm" th:href="@{/videos}" th:text="#{dashboard.library.view}">View full library</a>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6" th:each="video : ${view.featuredVideos}">
+                                    <div class="feature-video-card">
+                                        <img class="feature-video-thumb" th:src="${video.thumbnailUrl}" th:alt="${video.title}">
+                                        <div class="feature-video-body">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                <h5 class="mb-0" th:text="${video.title}"></h5>
+                                                <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
+                                            </div>
+                                            <div class="suggestion-list mb-2">
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.targetGoal)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.postureType)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.equipmentRequirement)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.impactLevel)}"></span>
+                                                <span class="suggestion-chip" th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}" th:text="${tag}"></span>
+                                            </div>
+                                            <p class="small text-muted mb-3" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="small text-muted" th:text="${@ui.safeText(video.platformChannel, @ui.message('ui.channelPending', 'Channel pending'))}"></span>
+                                                <a class="btn btn-sm btn-dark" th:href="@{/videos/{id}(id=${video.id})}" th:text="#{dashboard.preview}">Preview</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm">
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm dashboard-card profile-snapshot-card">
                 <div class="card-body p-4">
-                    <h4>Profile snapshot</h4>
-                    <div th:if="${profile != null}">
-                        <p class="mb-2"><strong>Goal:</strong> <span th:text="${profile.fitnessGoal}"></span></p>
-                        <p class="mb-2"><strong>Equipment:</strong> <span th:text="${profile.availableEquipment}"></span></p>
-                        <p class="mb-2"><strong>Preferred duration:</strong> <span th:text="${profile.preferredDurationMinutes}"></span> minutes</p>
-                        <p class="mb-0"><strong>Injury notes:</strong> <span th:text="${profile.injuryNotes}"></span></p>
+                    <span class="eyebrow" th:text="#{dashboard.profile.eyebrow}">Profile snapshot</span>
+                    <h3 class="mb-3" th:text="#{dashboard.profile.title}">Training profile</h3>
+                    <div th:if="${view.profile != null}">
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.goal}">Goal</span>
+                            <strong th:text="${@ui.label(view.profile.fitnessGoal)}"></strong>
+                        </div>
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.posture}">Preferred posture</span>
+                            <strong th:text="${@ui.label(view.profile.posturePreference)}"></strong>
+                        </div>
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.frequency}">Weekly frequency</span>
+                            <strong th:text="${view.profile.weeklyFrequency + ' sessions'}"></strong>
+                        </div>
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.areas}">Target areas</span>
+                            <strong th:text="${#strings.listJoin(@ui.csvLabels(view.profile.targetAreas), ', ')}"></strong>
+                        </div>
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.equipment}">Equipment</span>
+                            <strong th:text="${#strings.listJoin(@ui.csvLabels(view.profile.availableEquipment), ', ')}"></strong>
+                        </div>
+                        <div class="snapshot-row">
+                            <span th:text="#{dashboard.profile.safety}">Safety notes</span>
+                            <strong th:text="${@ui.safeText(view.profile.injuryNotes, @ui.message('ui.noExtraNotes', 'No extra notes yet'))}"></strong>
+                        </div>
                     </div>
-                    <div th:if="${profile == null}">
-                        <p class="text-muted">No profile yet. Add one before requesting recommendations.</p>
+                    <div th:if="${view.profile == null}">
+                        <p class="text-muted" th:text="#{dashboard.profile.empty}">No profile yet. Add one before requesting recommendations.</p>
                     </div>
-                    <a class="btn btn-outline-dark mt-3" th:href="@{/profile}">Edit profile</a>
+                    <div class="tag-quality-panel mt-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span th:text="#{dashboard.tag.coverage}">Tag coverage</span>
+                            <strong th:text="${view.tagCoveragePercent + '%'}"></strong>
+                        </div>
+                        <div class="tag-coverage-bar mt-2">
+                            <div class="tag-coverage-fill" th:style="'width:' + ${view.tagCoveragePercent} + '%'"></div>
+                        </div>
+                        <p class="small text-muted mt-2 mb-0" th:text="#{dashboard.tag.help}">This is based on visible featured videos and helps expose metadata gaps that still need curation.</p>
+                    </div>
+                    <a class="btn btn-outline-dark w-100 mt-4" th:href="@{/profile}" th:text="#{dashboard.profile.edit}">Edit profile</a>
                 </div>
             </div>
         </div>

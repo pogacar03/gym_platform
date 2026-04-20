@@ -4,36 +4,61 @@
 <body class="bg-light">
 <div class="hero-section">
     <div class="container py-5">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-7">
-                <span class="badge text-bg-success mb-3">Java Graduation Project Starter</span>
-                <h1 class="display-5 fw-bold">An LLM fitness companion built for a safe, explainable demo.</h1>
-                <p class="lead text-secondary mt-3">
-                    FitMate combines structured health profiles, workout video retrieval, and AI-generated explanations
-                    so that users can receive personalized exercise suggestions without losing safety guardrails.
-                </p>
-                <div class="d-flex gap-3 mt-4">
-                    <a class="btn btn-dark btn-lg" th:href="@{/login}">Login</a>
-                    <a class="btn btn-outline-dark btn-lg" th:href="@{/register}">Register</a>
+        <div class="d-flex justify-content-end mb-3">
+            <div th:replace="~{fragments/lang-switch :: switcher}"></div>
+        </div>
+        <div class="landing-grid">
+            <section class="landing-panel">
+                <span class="hero-badge" th:text="#{index.badge}">Java Graduation Project Starter</span>
+                <h1 class="hero-title" th:text="#{index.title}">Train with a plan, not guesswork.</h1>
+                <p class="hero-copy" th:text="#{index.subtitle}">FitMate helps users describe their workout needs in natural language, matches them with a curated video library, and turns the result into a usable training plan.</p>
+                <div class="hero-actions">
+                    <a class="btn btn-dark btn-lg" th:href="@{/login}" th:text="#{index.login}">Login</a>
+                    <a class="btn btn-outline-dark btn-lg" th:href="@{/register}" th:text="#{index.register}">Register</a>
                 </div>
-                <p class="text-muted mt-4 mb-0">Demo accounts: `student / password123`, `admin / password123`</p>
-            </div>
-            <div class="col-lg-5">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <h5>Why this implementation is defense-friendly</h5>
-                        <ul class="mt-3 mb-0">
-                            <li>Java-first stack with MyBatis-Plus</li>
-                            <li>Rule-based safety filters before AI explanation</li>
-                            <li>Admin-manageable workout content library</li>
-                            <li>Clear demo flow from profile to recommendation</li>
-                        </ul>
+                <div class="demo-pill" th:text="#{index.demo}">Demo accounts: student / password123, admin / password123</div>
+                <div class="hero-stat-grid">
+                    <div class="hero-stat">
+                        <strong>Profile</strong>
+                        <span th:text="#{index.point4}">Clear demo flow from profile to recommendation</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>Recommend</strong>
+                        <span th:text="#{index.point2}">Rule-based safety filters before AI explanation</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>Review</strong>
+                        <span th:text="#{index.point3}">Admin-manageable workout content library</span>
                     </div>
                 </div>
-            </div>
+            </section>
+            <aside class="landing-aside">
+                <div class="landing-stack">
+                    <div>
+                        <h5 th:text="#{index.why}">Why this implementation is defense-friendly</h5>
+                        <ul class="feature-list">
+                            <li th:text="#{index.point1}">Java-first stack with MyBatis-Plus</li>
+                            <li th:text="#{index.point2}">Rule-based safety filters before AI explanation</li>
+                            <li th:text="#{index.point3}">Admin-manageable workout content library</li>
+                            <li th:text="#{index.point4}">Clear demo flow from profile to recommendation</li>
+                        </ul>
+                    </div>
+                    <div class="card border-0">
+                        <div class="card-body p-4">
+                            <span class="eyebrow" th:text="#{index.preview.eyebrow}">Demo flow</span>
+                            <h4 class="mb-3" th:text="#{index.preview.title}">What the video walkthrough will show</h4>
+                            <ul class="feature-list mt-0">
+                                <li th:text="#{index.preview.step1}">Set up a training profile with posture, equipment and body areas.</li>
+                                <li th:text="#{index.preview.step2}">Request a session in plain language and receive matched workout videos.</li>
+                                <li th:text="#{index.preview.step3}">Save the plan, review progress rings and revisit recent sessions.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
 </div>
+<div th:replace="~{fragments/lang-switch :: script}"></div>
 </body>
 </html>
-

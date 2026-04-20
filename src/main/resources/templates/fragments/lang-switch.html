@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="switcher" class="language-switcher">
+    <button class="btn btn-sm"
+            th:classappend="${#locale.language == 'en'} ? ' btn-dark' : ' btn-outline-dark'"
+            type="button"
+            data-lang="en"
+            th:text="#{nav.lang.en}">EN</button>
+    <button class="btn btn-sm"
+            th:classappend="${#locale.language == 'zh'} ? ' btn-dark' : ' btn-outline-dark'"
+            type="button"
+            data-lang="zh_CN"
+            th:text="#{nav.lang.zh}">中文</button>
+</div>
+<script th:fragment="script">
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.language-switcher [data-lang]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('lang', button.dataset.lang);
+                window.location.href = url.toString();
+            });
+        });
+    });
+</script>
+</body>
+</html>

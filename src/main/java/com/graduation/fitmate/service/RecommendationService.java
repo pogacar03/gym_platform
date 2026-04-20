@@ -14,6 +14,9 @@ import com.graduation.fitmate.mapper.RecommendationHistoryMapper;
 import com.graduation.fitmate.mapper.WorkoutPlanItemMapper;
 import com.graduation.fitmate.mapper.WorkoutPlanMapper;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,12 +64,15 @@ public class RecommendationService {
         ParsedRecommendationRequest parsed = requestParsingService.parse(requestText, profile);
         WorkoutVideoQuery query = toQuery(parsed, false);
         List<WorkoutVideo> candidates = workoutVideoService.findCandidates(query);
+        String fallbackMessage = null;
         if (candidates.isEmpty()) {
             query.setRelaxGoal(true);
             candidates = workoutVideoService.findCandidates(query);
+            fallbackMessage = "No exact match was found, so the system relaxed the goal filter and kept safety-related conditions.";
         }
         if (candidates.isEmpty()) {
-            candidates = workoutVideoService.findAllActive().stream().limit(3).toList();
+            candidates = fallbackCandidates(parsed);
+            fallbackMessage = "No close database match was found, so the system returned the safest broadly relevant options from the curated library.";
         }
         if (candidates.size() > 3) {
             candidates = candidates.subList(0, 3);
@@ -74,10 +80,14 @@ public class RecommendationService {
 
         RecommendationResult result = new RecommendationResult();
         result.setTitle(buildPlanTitle(parsed));
+        result.setSummary(buildSummary(parsed, candidates));
         result.getVideos().addAll(candidates);
-        result.setExplanation(llmGateway.generateExplanation(profile, parsed, candidates));
+        result.setExplanation(buildExplanation(profile, parsed, candidates));
         result.setSafetyNotes(buildSafetyNote(parsed));
-        result.setFallbackUsed(true);
+        result.setFallbackUsed(fallbackMessage != null);
+        result.setFallbackMessage(fallbackMessage);
+        result.getAppliedFilters().addAll(buildAppliedFilters(parsed));
+        result.getVideoReasons().putAll(buildVideoReasons(parsed, candidates));
 
         RecommendationHistory history = new RecommendationHistory();
         history.setUserId(account.getId());
@@ -110,6 +120,17 @@ public class RecommendationService {
         return result;
     }
 
+    private List<WorkoutVideo> fallbackCandidates(ParsedRecommendationRequest parsed) {
+        return workoutVideoService.findAllActive().stream()
+                .filter(video -> parsed.getDurationMinutes() == null || video.getDurationMinutes() == null
+                        || video.getDurationMinutes() <= parsed.getDurationMinutes() + 10)
+                .filter(video -> !parsed.isKneeSensitive() || !"HIGH".equalsIgnoreCase(video.getImpactLevel()))
+                .filter(video -> !parsed.isBackSensitive() || !"CORE".equalsIgnoreCase(video.getTargetBodyPart()))
+                .sorted((left, right) -> Integer.compare(scoreVideo(parsed, right), scoreVideo(parsed, left)))
+                .limit(3)
+                .toList();
+    }
+
     private WorkoutVideoQuery toQuery(ParsedRecommendationRequest parsed, boolean relaxGoal) {
         WorkoutVideoQuery query = new WorkoutVideoQuery();
         query.setGoal(parsed.getGoal());
@@ -127,11 +148,104 @@ public class RecommendationService {
         return parsed.getDurationMinutes() + "-minute " + humanizeGoal(parsed.getGoal()) + " session";
     }
 
+    private String buildSummary(ParsedRecommendationRequest parsed, List<WorkoutVideo> candidates) {
+        String posture = parsed.getPostureType() == null ? "flexible posture" : humanizeEnum(parsed.getPostureType());
+        String equipment = parsed.getEquipment() == null ? "available equipment" : humanizeEnum(parsed.getEquipment());
+        String area = parsed.getTargetArea() == null ? "full-body support" : humanizeEnum(parsed.getTargetArea());
+        return "Built around " + parsed.getDurationMinutes() + " minutes, " + posture + ", " + equipment
+                + ", and a focus on " + area + ". " + candidates.size() + " curated videos matched best.";
+    }
+
+    private String buildExplanation(UserProfile profile, ParsedRecommendationRequest parsed, List<WorkoutVideo> candidates) {
+        try {
+            return llmGateway.generateExplanation(profile, parsed, candidates);
+        } catch (Exception ex) {
+            return "These recommendations were assembled from your profile, requested duration, posture, equipment access, and safety filters.";
+        }
+    }
+
     private String buildSafetyNote(ParsedRecommendationRequest parsed) {
         if (parsed.getSafetyFlags().isEmpty()) {
             return "No extra safety flags detected. Maintain comfortable intensity and hydrate well.";
         }
         return "Safety filters applied: " + String.join(", ", parsed.getSafetyFlags()) + ". Stop immediately if pain increases.";
+    }
+
+    private List<String> buildAppliedFilters(ParsedRecommendationRequest parsed) {
+        return Stream.of(
+                        parsed.getEquipment() == null ? null : "Equipment: " + humanizeEnum(parsed.getEquipment()),
+                        parsed.getPostureType() == null ? null : "Posture: " + humanizeEnum(parsed.getPostureType()),
+                        parsed.getTargetArea() == null ? null : "Target area: " + humanizeEnum(parsed.getTargetArea()),
+                        parsed.getGoal() == null ? null : "Goal: " + humanizeGoal(parsed.getGoal()),
+                        parsed.isKneeSensitive() ? "Knee-sensitive filter" : null,
+                        parsed.isBackSensitive() ? "Back-friendly filter" : null,
+                        parsed.getDurationMinutes() == null ? null : "Duration <= " + parsed.getDurationMinutes() + " min"
+                )
+                .filter(value -> value != null && !value.isBlank())
+                .toList();
+    }
+
+    private Map<Long, List<String>> buildVideoReasons(ParsedRecommendationRequest parsed, List<WorkoutVideo> videos) {
+        return videos.stream().collect(Collectors.toMap(
+                WorkoutVideo::getId,
+                video -> {
+                    List<String> reasons = new java.util.ArrayList<>();
+                    if (matches(video.getEquipmentRequirement(), parsed.getEquipment())) {
+                        reasons.add("Equipment fits your setup");
+                    }
+                    if (matches(video.getPostureType(), parsed.getPostureType())) {
+                        reasons.add("Posture matches your request");
+                    }
+                    if (matches(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+                        reasons.add("Body area is aligned");
+                    }
+                    if (matches(video.getTargetGoal(), parsed.getGoal())) {
+                        reasons.add("Training goal is aligned");
+                    }
+                    if (parsed.isKneeSensitive() && !"HIGH".equalsIgnoreCase(video.getImpactLevel())) {
+                        reasons.add("Lower-impact option");
+                    }
+                    if (parsed.isBackSensitive() && !"CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
+                        reasons.add("Back-friendly choice");
+                    }
+                    if (reasons.isEmpty()) {
+                        reasons.add("Closest safe match from the curated library");
+                    }
+                    return reasons;
+                },
+                (left, right) -> left,
+                java.util.LinkedHashMap::new
+        ));
+    }
+
+    private int scoreVideo(ParsedRecommendationRequest parsed, WorkoutVideo video) {
+        int score = 0;
+        if (matches(video.getEquipmentRequirement(), parsed.getEquipment())) {
+            score += 4;
+        }
+        if (matches(video.getPostureType(), parsed.getPostureType())) {
+            score += 4;
+        }
+        if (matches(video.getTargetGoal(), parsed.getGoal())) {
+            score += 3;
+        }
+        if (matches(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+            score += 2;
+        }
+        if (parsed.isKneeSensitive() && !"HIGH".equalsIgnoreCase(video.getImpactLevel())) {
+            score += 2;
+        }
+        if (parsed.isBackSensitive() && !"CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
+            score += 2;
+        }
+        return score;
+    }
+
+    private boolean matches(String value, String expected) {
+        if (value == null || expected == null) {
+            return false;
+        }
+        return value.equalsIgnoreCase(expected);
     }
 
     private String humanizeGoal(String goal) {
@@ -142,5 +256,12 @@ public class RecommendationService {
             case "CORE_STRENGTH" -> "core strength";
             default -> goal == null ? "workout" : goal.toLowerCase();
         };
+    }
+
+    private String humanizeEnum(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 }

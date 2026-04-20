@@ -3,6 +3,8 @@ package com.graduation.fitmate.controller;
 import com.graduation.fitmate.entity.UserProfile;
 import com.graduation.fitmate.service.UserProfileService;
 import java.security.Principal;
+import java.util.Locale;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class ProfileController {
 
     private final UserProfileService userProfileService;
+    private final MessageSource messageSource;
 
-    public ProfileController(UserProfileService userProfileService) {
+    public ProfileController(UserProfileService userProfileService, MessageSource messageSource) {
         this.userProfileService = userProfileService;
+        this.messageSource = messageSource;
     }
 
     @GetMapping("/profile")
@@ -29,11 +33,15 @@ public class ProfileController {
     }
 
     @PostMapping("/profile")
-    public String saveProfile(@ModelAttribute("profile") UserProfile profile, Principal principal, Model model) {
+    public String saveProfile(@ModelAttribute("profile") UserProfile profile, Principal principal, Model model, Locale locale) {
         userProfileService.saveProfile(principal.getName(), profile);
         model.addAttribute("profile", userProfileService.getProfileByUsername(principal.getName()));
-        model.addAttribute("message", "Profile saved successfully.");
+        model.addAttribute("message", messageSource.getMessage(
+                "profile.saved",
+                null,
+                "Profile saved successfully.",
+                locale
+        ));
         return "profile/form";
     }
 }
-

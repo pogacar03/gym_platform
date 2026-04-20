@@ -3,35 +3,43 @@
 <head th:replace="~{fragments/head :: head(${video.title})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
-<div class="container pb-5">
+<div class="container page-shell video-shell">
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <span class="eyebrow" th:text="${video.sourceType}"></span>
-                    <h2 th:text="${video.title}"></h2>
-                    <p class="text-muted" th:text="${video.description}"></p>
+                    <span class="eyebrow" th:text="${@ui.label(video.sourceType)}"></span>
+                    <h1 class="mb-2" th:text="${video.title}"></h1>
+                    <p class="text-muted" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
+                    <div class="suggestion-list mb-3">
+                        <span class="suggestion-chip" th:text="${@ui.label(video.targetGoal)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.postureType)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.equipmentRequirement)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.impactLevel)}"></span>
+                        <span class="suggestion-chip" th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}" th:text="${tag}"></span>
+                    </div>
                     <div class="ratio ratio-16x9 rounded overflow-hidden bg-dark" th:if="${video.embedUrl != null and !#strings.isEmpty(video.embedUrl)}">
                         <iframe th:src="${video.embedUrl}" th:title="${video.title}" allowfullscreen></iframe>
                     </div>
                     <div class="mt-3 d-flex gap-2">
-                        <a class="btn btn-dark" th:href="${video.videoUrl}" target="_blank">Open on YouTube</a>
-                        <a class="btn btn-outline-dark" th:href="@{/videos}">Back to library</a>
+                        <a class="btn btn-dark" th:href="${video.videoUrl}" target="_blank" th:text="#{video.open}">Open on YouTube</a>
+                        <a class="btn btn-outline-dark" th:href="@{/videos}" th:text="#{video.back}">Back to library</a>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm detail-aside">
                 <div class="card-body p-4">
-                    <h5>Video details</h5>
-                    <p class="mb-2"><strong>Channel:</strong> <span th:text="${video.platformChannel}"></span></p>
-                    <p class="mb-2"><strong>Goal:</strong> <span th:text="${video.targetGoal}"></span></p>
-                    <p class="mb-2"><strong>Target area:</strong> <span th:text="${video.targetBodyPart}"></span></p>
-                    <p class="mb-2"><strong>Posture:</strong> <span th:text="${video.postureType}"></span></p>
-                    <p class="mb-2"><strong>Equipment:</strong> <span th:text="${video.equipmentRequirement}"></span></p>
-                    <p class="mb-2"><strong>Duration:</strong> <span th:text="${video.durationMinutes + ' min'}"></span></p>
-                    <p class="mb-0"><strong>Safety notes:</strong> <span th:text="${video.safetyNotes}"></span></p>
+                    <h5 th:text="#{video.details}">Video details</h5>
+                    <div class="detail-row"><strong th:text="#{video.channel}">Channel</strong><span th:text="${@ui.safeText(video.platformChannel, @ui.message('ui.channelPending', 'Channel pending'))}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.goal}">Goal</strong><span th:text="${@ui.label(video.targetGoal)}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.target}">Target area</strong><span th:text="${@ui.label(video.targetBodyPart)}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.posture}">Posture</strong><span th:text="${@ui.label(video.postureType)}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.equipment}">Equipment</strong><span th:text="${@ui.label(video.equipmentRequirement)}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.duration}">Duration</strong><span th:text="${video.durationMinutes + ' min'}"></span></div>
+                    <div class="detail-row"><strong th:text="#{video.safety}">Safety notes</strong><span th:text="${@ui.safeText(video.safetyNotes, @ui.message('ui.tagNeeded', 'Tag needed'))}"></span></div>
                 </div>
             </div>
         </div>

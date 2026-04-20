@@ -2,33 +2,38 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Register')}"></head>
 <body class="bg-light">
-<div class="container py-5">
+<div class="auth-shell">
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
-                    <h2>Create an account</h2>
+                    <div class="d-flex justify-content-end mb-3">
+                        <div th:replace="~{fragments/lang-switch :: switcher}"></div>
+                    </div>
+                    <h2 class="auth-heading" th:text="#{register.title}">Create an account</h2>
                     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
                     <form th:action="@{/register}" th:object="${registerRequest}" method="post">
                         <div class="mb-3">
-                            <label class="form-label">Username</label>
+                            <label class="form-label" th:text="#{register.username}">Username</label>
                             <input class="form-control" th:field="*{username}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Display name</label>
+                            <label class="form-label" th:text="#{register.displayName}">Display name</label>
                             <input class="form-control" th:field="*{displayName}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Password</label>
+                            <label class="form-label" th:text="#{register.password}">Password</label>
                             <input class="form-control" type="password" th:field="*{password}">
                         </div>
-                        <button class="btn btn-dark" type="submit">Register</button>
+                        <button class="btn btn-dark" type="submit" th:text="#{register.submit}">Register</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+</div>
+<div th:replace="~{fragments/lang-switch :: script}"></div>
 </body>
 </html>
-

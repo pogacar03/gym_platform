@@ -27,10 +27,10 @@ public class ImportedVideo {
     private String suggestedTargetArea;
     private String suggestedDifficulty;
     private String suggestedImpactLevel;
+    private String suggestedExtraTags;
     private String safetyFlags;
     private BigDecimal confidenceScore;
     private String reviewNote;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

@@ -20,6 +20,7 @@ public class WorkoutVideo {
     private String equipmentRequirement;
     private Integer durationMinutes;
     private String impactLevel;
+    private String extraTags;
     private String safetyNotes;
     private String sourceType;
     private String sourceVideoId;

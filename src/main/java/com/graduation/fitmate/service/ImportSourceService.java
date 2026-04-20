@@ -6,11 +6,15 @@ import com.graduation.fitmate.entity.ImportSource;
 import com.graduation.fitmate.mapper.ImportSourceMapper;
 import com.graduation.fitmate.mapper.ImportedVideoMapper;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ImportSourceService {
+
+    private static final Pattern CHANNEL_ID_PATTERN = Pattern.compile("(UC[\\w-]{20,})");
 
     private final ImportSourceMapper importSourceMapper;
     private final ImportedVideoMapper importedVideoMapper;
@@ -40,7 +44,7 @@ public class ImportSourceService {
         ImportSource source = new ImportSource();
         source.setName(form.getName());
         source.setSourceType(form.getSourceType());
-        source.setExternalId(form.getExternalId());
+        source.setExternalId(normalizeExternalId(form.getExternalId()));
         source.setChannelName(form.getChannelName());
         source.setDefaultGoal(form.getDefaultGoal());
         source.setDefaultEquipment(form.getDefaultEquipment());
@@ -79,5 +83,20 @@ public class ImportSourceService {
         importedVideoMapper.delete(new LambdaQueryWrapper<com.graduation.fitmate.entity.ImportedVideo>()
                 .eq(com.graduation.fitmate.entity.ImportedVideo::getSourceId, id));
         importSourceMapper.deleteById(id);
+    }
+
+    private String normalizeExternalId(String externalId) {
+        if (externalId == null) {
+            return null;
+        }
+        String trimmed = externalId.trim();
+        if (trimmed.startsWith("UC")) {
+            return trimmed;
+        }
+        Matcher matcher = CHANNEL_ID_PATTERN.matcher(trimmed);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return trimmed;
     }
 }

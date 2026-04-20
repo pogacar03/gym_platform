@@ -1,34 +1,38 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Workout Library')}"></head>
+<head th:replace="~{fragments/head :: head(#{videos.pageTitle})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
-<div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container page-shell library-shell">
+    <div class="page-hero mb-4">
         <div>
-            <h2>Workout library</h2>
-            <p class="text-muted mb-0">Curated multi-source videos for the recommendation engine. The current seed data is YouTube-first for HKU-friendly demos.</p>
+            <span class="eyebrow" th:text="#{videos.eyebrow}">Workout library</span>
+            <h1 class="mb-2" th:text="#{videos.title}">Workout library</h1>
+            <p class="text-muted mb-0" th:text="#{videos.subtitle}">Curated multi-source videos for the recommendation engine. The current seed data is YouTube-first for HKU-friendly demos.</p>
         </div>
     </div>
-    <div class="row g-4">
+    <div class="row g-4 library-grid">
         <div class="col-md-6 col-lg-4" th:each="video : ${videos}">
             <div class="card h-100 border-0 shadow-sm">
                 <img class="card-img-top" th:src="${video.thumbnailUrl}" th:alt="${video.title}">
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="badge text-bg-dark" th:text="${video.targetGoal}"></span>
+                        <span class="badge text-bg-dark" th:text="${@ui.label(video.targetGoal)}"></span>
                         <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
                     </div>
                     <h5 class="card-title" th:text="${video.title}"></h5>
-                    <p class="card-text text-muted" th:text="${video.description}"></p>
-                    <p class="small mb-1"><strong>Source:</strong> <span th:text="${video.sourceType}"></span> / <span th:text="${video.platformChannel}"></span></p>
-                    <p class="small mb-1"><strong>Posture:</strong> <span th:text="${video.postureType}"></span></p>
-                    <p class="small mb-1"><strong>Target area:</strong> <span th:text="${video.targetBodyPart}"></span></p>
-                    <p class="small mb-1"><strong>Equipment:</strong> <span th:text="${video.equipmentRequirement}"></span></p>
-                    <p class="small mb-3"><strong>Impact:</strong> <span th:text="${video.impactLevel}"></span></p>
+                    <p class="card-text text-muted" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
+                    <div class="suggestion-list mb-3">
+                        <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.postureType)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.equipmentRequirement)}"></span>
+                        <span class="suggestion-chip" th:text="${@ui.label(video.impactLevel)}"></span>
+                        <span class="suggestion-chip" th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}" th:text="${tag}"></span>
+                    </div>
+                    <p class="small mb-3"><strong th:text="#{videos.source} + ':'">Source:</strong> <span th:text="${@ui.label(video.sourceType)}"></span> / <span th:text="${@ui.safeText(video.platformChannel, @ui.message('ui.channelPending', 'Channel pending'))}"></span></p>
                     <div class="d-flex gap-2">
-                        <a class="btn btn-dark btn-sm" th:href="@{/videos/{id}(id=${video.id})}">Preview</a>
-                        <a class="btn btn-outline-dark btn-sm" th:href="${video.videoUrl}" target="_blank">Open source</a>
+                        <a class="btn btn-dark btn-sm" th:href="@{/videos/{id}(id=${video.id})}" th:text="#{videos.preview}">Preview</a>
+                        <a class="btn btn-outline-dark btn-sm" th:href="${video.videoUrl}" target="_blank" th:text="#{videos.open}">Open source</a>
                     </div>
                 </div>
             </div>

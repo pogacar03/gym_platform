@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Profile')}"></head>
+<head th:replace="~{fragments/head :: head(#{profile.pageTitle})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
 <div class="container pb-5">
@@ -10,12 +10,12 @@
                 <div class="card-body p-4">
                     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
                         <div>
-                            <span class="eyebrow">Personalization Setup</span>
-                            <h2 class="mb-2">Build your exercise profile</h2>
-                            <p class="text-muted mb-0">Choose guided options instead of filling a raw database form. This profile powers safety filters and recommendation quality.</p>
+                            <span class="eyebrow" th:text="#{profile.eyebrow}">Personalization Setup</span>
+                            <h2 class="mb-2" th:text="#{profile.title}">Build your exercise profile</h2>
+                            <p class="text-muted mb-0" th:text="#{profile.subtitle}">Choose guided options instead of filling a raw database form. This profile powers safety filters and recommendation quality.</p>
                         </div>
                         <div class="profile-tip">
-                            <strong>Tip:</strong> Pick your preferred posture and target areas first. Your natural-language prompt can then refine the result.
+                            <strong th:text="#{profile.tipLabel}">Tip:</strong> <span th:text="#{profile.tip}">Pick your preferred posture and target areas first. Your natural-language prompt can then refine the result.</span>
                         </div>
                     </div>
                     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
@@ -23,27 +23,27 @@
                         <div class="row g-4">
                             <div class="col-lg-4">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Basic info</h5>
+                                    <h5 class="section-title" th:text="#{profile.basic}">Basic info</h5>
                                     <div class="row g-3">
                                         <div class="col-6">
-                                            <label class="form-label">Age</label>
+                                            <label class="form-label" th:text="#{profile.age}">Age</label>
                                             <input class="form-control" type="number" th:field="*{age}">
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label">Gender</label>
+                                            <label class="form-label" th:text="#{profile.gender}">Gender</label>
                                             <select class="form-select" th:field="*{gender}">
-                                                <option value="FEMALE">Female</option>
-                                                <option value="MALE">Male</option>
-                                                <option value="NON_BINARY">Non-binary</option>
-                                                <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+                                                <option value="FEMALE" th:text="#{profile.gender.female}">Female</option>
+                                                <option value="MALE" th:text="#{profile.gender.male}">Male</option>
+                                                <option value="NON_BINARY" th:text="#{profile.gender.nonBinary}">Non-binary</option>
+                                                <option value="PREFER_NOT_TO_SAY" th:text="#{profile.gender.noAnswer}">Prefer not to say</option>
                                             </select>
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label">Height (cm)</label>
+                                            <label class="form-label" th:text="#{profile.height}">Height (cm)</label>
                                             <input class="form-control" type="number" th:field="*{heightCm}">
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label">Weight (kg)</label>
+                                            <label class="form-label" th:text="#{profile.weight}">Weight (kg)</label>
                                             <input class="form-control" type="number" step="0.1" th:field="*{weightKg}">
                                         </div>
                                     </div>
@@ -51,78 +51,78 @@
                             </div>
                             <div class="col-lg-8">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Training goal</h5>
+                                    <h5 class="section-title" th:text="#{profile.goal}">Training goal</h5>
                                     <div class="choice-grid choice-grid-4">
                                         <label class="choice-card">
                                             <input type="radio" th:field="*{fitnessGoal}" value="WEIGHT_LOSS">
-                                            <span class="choice-card-title">Weight loss</span>
-                                            <span class="choice-card-copy">Low-barrier fat burn and consistency.</span>
+                                            <span class="choice-card-title" th:text="#{profile.goal.loss}">Weight loss</span>
+                                            <span class="choice-card-copy" th:text="#{profile.goal.loss.copy}">Low-barrier fat burn and consistency.</span>
                                         </label>
                                         <label class="choice-card">
                                             <input type="radio" th:field="*{fitnessGoal}" value="MUSCLE_TONE">
-                                            <span class="choice-card-title">Muscle tone</span>
-                                            <span class="choice-card-copy">Strength, shaping, endurance.</span>
+                                            <span class="choice-card-title" th:text="#{profile.goal.tone}">Muscle tone</span>
+                                            <span class="choice-card-copy" th:text="#{profile.goal.tone.copy}">Strength, shaping, endurance.</span>
                                         </label>
                                         <label class="choice-card">
                                             <input type="radio" th:field="*{fitnessGoal}" value="RECOVERY">
-                                            <span class="choice-card-title">Recovery</span>
-                                            <span class="choice-card-copy">Gentle mobility and safe return.</span>
+                                            <span class="choice-card-title" th:text="#{profile.goal.recovery}">Recovery</span>
+                                            <span class="choice-card-copy" th:text="#{profile.goal.recovery.copy}">Gentle mobility and safe return.</span>
                                         </label>
                                         <label class="choice-card">
                                             <input type="radio" th:field="*{fitnessGoal}" value="CORE_STRENGTH">
-                                            <span class="choice-card-title">Core strength</span>
-                                            <span class="choice-card-copy">Stability and trunk control.</span>
+                                            <span class="choice-card-title" th:text="#{profile.goal.core}">Core strength</span>
+                                            <span class="choice-card-copy" th:text="#{profile.goal.core.copy}">Stability and trunk control.</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Current level and schedule</h5>
+                                    <h5 class="section-title" th:text="#{profile.schedule.title}">Current level and schedule</h5>
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label">Activity level</label>
+                                            <label class="form-label" th:text="#{profile.activity}">Activity level</label>
                                             <select class="form-select" th:field="*{activityLevel}">
-                                                <option value="BEGINNER">Beginner</option>
-                                                <option value="INTERMEDIATE">Intermediate</option>
-                                                <option value="ADVANCED">Advanced</option>
+                                                <option value="BEGINNER" th:text="#{label.beginner}">Beginner</option>
+                                                <option value="INTERMEDIATE" th:text="#{label.intermediate}">Intermediate</option>
+                                                <option value="ADVANCED" th:text="#{label.advanced}">Advanced</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Weekly frequency</label>
+                                            <label class="form-label" th:text="#{profile.frequency}">Weekly frequency</label>
                                             <select class="form-select" th:field="*{weeklyFrequency}">
-                                                <option value="2">2 sessions</option>
-                                                <option value="3">3 sessions</option>
-                                                <option value="4">4 sessions</option>
-                                                <option value="5">5 sessions</option>
+                                                <option value="2" th:text="#{profile.frequency.2}">2 sessions</option>
+                                                <option value="3" th:text="#{profile.frequency.3}">3 sessions</option>
+                                                <option value="4" th:text="#{profile.frequency.4}">4 sessions</option>
+                                                <option value="5" th:text="#{profile.frequency.5}">5 sessions</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Preferred duration</label>
+                                            <label class="form-label" th:text="#{profile.duration}">Preferred duration</label>
                                             <select class="form-select" th:field="*{preferredDurationMinutes}">
-                                                <option value="10">10 minutes</option>
-                                                <option value="15">15 minutes</option>
-                                                <option value="20">20 minutes</option>
-                                                <option value="30">30 minutes</option>
-                                                <option value="45">45 minutes</option>
+                                                <option value="10" th:text="#{profile.duration.10}">10 minutes</option>
+                                                <option value="15" th:text="#{profile.duration.15}">15 minutes</option>
+                                                <option value="20" th:text="#{profile.duration.20}">20 minutes</option>
+                                                <option value="30" th:text="#{profile.duration.30}">30 minutes</option>
+                                                <option value="45" th:text="#{profile.duration.45}">45 minutes</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Preferred posture</label>
+                                            <label class="form-label" th:text="#{profile.posture}">Preferred posture</label>
                                             <select class="form-select" th:field="*{posturePreference}">
-                                                <option value="">No preference</option>
-                                                <option value="SITTING">Sitting / chair</option>
-                                                <option value="STANDING">Standing</option>
-                                                <option value="FLOOR">Floor / mat</option>
+                                                <option value="" th:text="#{profile.posture.none}">No preference</option>
+                                                <option value="SITTING" th:text="#{label.sitting}">Sitting / chair</option>
+                                                <option value="STANDING" th:text="#{label.standing}">Standing</option>
+                                                <option value="FLOOR" th:text="#{label.floor}">Floor / mat</option>
                                             </select>
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label">Exercise preference</label>
+                                            <label class="form-label" th:text="#{profile.preference}">Exercise preference</label>
                                             <select class="form-select" th:field="*{exercisePreference}">
-                                                <option value="LOW_IMPACT">Low impact</option>
-                                                <option value="MIXED_CARDIO">Mixed cardio</option>
-                                                <option value="STRENGTH_FOCUS">Strength focus</option>
-                                                <option value="MOBILITY_FLOW">Mobility flow</option>
+                                                <option value="LOW_IMPACT" th:text="#{label.low_impact}">Low impact</option>
+                                                <option value="MIXED_CARDIO" th:text="#{label.mixed_cardio}">Mixed cardio</option>
+                                                <option value="STRENGTH_FOCUS" th:text="#{label.strength_focus}">Strength focus</option>
+                                                <option value="MOBILITY_FLOW" th:text="#{label.mobility_flow}">Mobility flow</option>
                                             </select>
                                         </div>
                                     </div>
@@ -130,27 +130,27 @@
                             </div>
                             <div class="col-lg-6">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Equipment access</h5>
-                                    <p class="text-muted small mb-3">Choose all equipment you can realistically use.</p>
+                                    <h5 class="section-title" th:text="#{profile.equipment.title}">Equipment access</h5>
+                                    <p class="text-muted small mb-3" th:text="#{profile.equipment.help}">Choose all equipment you can realistically use.</p>
                                     <input type="hidden" id="availableEquipment" name="availableEquipment" th:value="*{availableEquipment}">
                                     <div class="chip-group" data-target-input="availableEquipment">
-                                        <button class="chip-button" type="button" data-value="NONE">No equipment</button>
-                                        <button class="chip-button" type="button" data-value="CHAIR">Chair</button>
-                                        <button class="chip-button" type="button" data-value="BANDS">Bands</button>
-                                        <button class="chip-button" type="button" data-value="DUMBBELL">Dumbbell</button>
+                                        <button class="chip-button" type="button" data-value="NONE" th:text="#{label.none}">No equipment</button>
+                                        <button class="chip-button" type="button" data-value="CHAIR" th:text="#{label.chair}">Chair</button>
+                                        <button class="chip-button" type="button" data-value="BANDS" th:text="#{label.bands}">Bands</button>
+                                        <button class="chip-button" type="button" data-value="DUMBBELL" th:text="#{label.dumbbell}">Dumbbell</button>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-lg-7">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Target body areas</h5>
-                                    <p class="text-muted small mb-3">Tap the highlighted muscle regions on the front and back body maps.</p>
+                                    <h5 class="section-title" th:text="#{profile.body.title}">Target body areas</h5>
+                                    <p class="text-muted small mb-3" th:text="#{profile.body.help}">Tap the highlighted muscle regions on the front and back body maps.</p>
                                     <input type="hidden" id="targetAreas" name="targetAreas" th:value="*{targetAreas}">
                                     <div class="body-map-layout">
                                         <div class="body-map-card">
-                                            <div class="body-map-title">Front</div>
+                                            <div class="body-map-title" th:text="#{profile.body.front}">Front</div>
                                             <div class="body-map" data-target-input="targetAreas">
-                                                <svg class="body-figure" viewBox="0 0 220 420" aria-label="Front body map">
+                                                <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{profile.body.frontMap}">
                                                     <g class="body-base">
                                                         <circle cx="110" cy="38" r="24"></circle>
                                                         <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
@@ -169,9 +169,9 @@
                                             </div>
                                         </div>
                                         <div class="body-map-card">
-                                            <div class="body-map-title">Back</div>
+                                            <div class="body-map-title" th:text="#{profile.body.back}">Back</div>
                                             <div class="body-map" data-target-input="targetAreas">
-                                                <svg class="body-figure" viewBox="0 0 220 420" aria-label="Back body map">
+                                                <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{profile.body.backMap}">
                                                     <g class="body-base">
                                                         <circle cx="110" cy="38" r="24"></circle>
                                                         <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
@@ -194,28 +194,28 @@
                             </div>
                             <div class="col-lg-5">
                                 <div class="section-panel h-100">
-                                    <h5 class="section-title">Safety and notes</h5>
+                                    <h5 class="section-title" th:text="#{profile.safety.title}">Safety and notes</h5>
                                     <div class="choice-grid">
                                         <label class="choice-card compact-choice">
                                             <input type="checkbox" th:field="*{kneeSensitive}">
-                                            <span class="choice-card-title">Knee sensitive</span>
-                                            <span class="choice-card-copy">Avoid jumping or high-impact movement.</span>
+                                            <span class="choice-card-title" th:text="#{profile.safety.knee}">Knee sensitive</span>
+                                            <span class="choice-card-copy" th:text="#{profile.safety.knee.copy}">Avoid jumping or high-impact movement.</span>
                                         </label>
                                         <label class="choice-card compact-choice">
                                             <input type="checkbox" th:field="*{backSensitive}">
-                                            <span class="choice-card-title">Back sensitive</span>
-                                            <span class="choice-card-copy">Reduce aggressive core and loading.</span>
+                                            <span class="choice-card-title" th:text="#{profile.safety.back}">Back sensitive</span>
+                                            <span class="choice-card-copy" th:text="#{profile.safety.back.copy}">Reduce aggressive core and loading.</span>
                                         </label>
                                     </div>
                                     <div class="mt-3">
-                                        <label class="form-label">Injury notes</label>
-                                        <textarea class="form-control" rows="6" th:field="*{injuryNotes}" placeholder="Example: right knee discomfort during jumping, avoid floor transitions."></textarea>
+                                        <label class="form-label" th:text="#{profile.safety.notes}">Injury notes</label>
+                                        <textarea class="form-control" rows="6" th:field="*{injuryNotes}" th:attr="placeholder=#{profile.safety.placeholder}"></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end mt-4">
-                            <button class="btn btn-dark btn-lg px-4" type="submit">Save profile</button>
+                            <button class="btn btn-dark btn-lg px-4" type="submit" th:text="#{profile.save}">Save profile</button>
                         </div>
                     </form>
                 </div>

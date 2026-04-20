@@ -1,44 +1,112 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Recommendations')}"></head>
+<head th:replace="~{fragments/head :: head(#{recommend.pageTitle})}"></head>
 <body class="bg-light">
 <div th:replace="~{fragments/nav :: nav}"></div>
-<div class="container pb-5">
-    <div class="row g-4">
-        <div class="col-lg-5">
+<div class="container page-shell">
+    <div class="page-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{recommend.eyebrow}">Session request</span>
+            <h1 class="mb-2" th:text="#{recommend.title}">Describe your ideal session</h1>
+            <p class="text-muted mb-0" th:text="#{recommend.example}">Example: I want a 20-minute seated back workout with no equipment and low impact.</p>
+        </div>
+    </div>
+    <div class="recommendation-layout">
+        <div>
             <div class="card border-0 shadow-sm recommendation-panel">
                 <div class="card-body p-4">
-                    <span class="eyebrow">Natural-language search</span>
-                    <h2>Describe your ideal session</h2>
-                    <p class="text-muted">Example: 我想减脂，只有 20 分钟，无器械，而且想坐在椅子上练手臂。</p>
+                    <span class="eyebrow" th:text="#{recommend.quick.eyebrow}">Quick setup</span>
+                    <h2 class="mb-2" th:text="#{recommend.quick.title}">Build the request</h2>
+                    <p class="text-muted" th:text="#{recommend.quick.help}">Start with the quick filters, then add one sentence if you want to be more specific.</p>
                     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
                     <form th:action="@{/recommendations}" th:object="${recommendationRequest}" method="post">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{recommend.quick.duration}">Duration</label>
+                                <select class="form-select" th:field="*{quickDurationMinutes}">
+                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
+                                    <option value="10">10 min</option>
+                                    <option value="15">15 min</option>
+                                    <option value="20">20 min</option>
+                                    <option value="30">30 min</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{recommend.quick.posture}">Posture</label>
+                                <select class="form-select" th:field="*{quickPosture}">
+                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
+                                    <option value="standing" th:text="#{recommend.quick.standing}">Standing</option>
+                                    <option value="chair workout" th:text="#{recommend.quick.chair}">Chair workout</option>
+                                    <option value="floor workout" th:text="#{recommend.quick.floor}">Floor workout</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{recommend.quick.equipment}">Equipment</label>
+                                <select class="form-select" th:field="*{quickEquipment}">
+                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
+                                    <option value="no equipment" th:text="#{recommend.quick.none}">No equipment</option>
+                                    <option value="chair" th:text="#{recommend.quick.chairOnly}">Chair</option>
+                                    <option value="bands" th:text="#{recommend.quick.bands}">Bands</option>
+                                    <option value="dumbbell" th:text="#{recommend.quick.dumbbell}">Dumbbell</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{recommend.quick.intensity}">Intensity</label>
+                                <select class="form-select" th:field="*{quickIntensity}">
+                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
+                                    <option value="low impact" th:text="#{recommend.quick.low}">Low impact</option>
+                                    <option value="moderate intensity" th:text="#{recommend.quick.medium}">Moderate</option>
+                                    <option value="high intensity" th:text="#{recommend.quick.high}">High</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" th:text="#{recommend.quick.target}">Target area</label>
+                                <select class="form-select" th:field="*{quickTargetArea}">
+                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
+                                    <option value="arms" th:text="#{recommend.quick.arms}">Arms</option>
+                                    <option value="back" th:text="#{recommend.quick.back}">Back</option>
+                                    <option value="core" th:text="#{recommend.quick.core}">Core</option>
+                                    <option value="legs" th:text="#{recommend.quick.legs}">Legs</option>
+                                    <option value="glutes" th:text="#{recommend.quick.glutes}">Glutes</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="mb-3">
-                            <textarea class="form-control" rows="6" th:field="*{requestText}"></textarea>
-                            <div class="text-danger mt-2" th:if="${#fields.hasErrors('requestText')}" th:errors="*{requestText}"></div>
+                            <label class="form-label" th:text="#{recommend.quick.extra}">Extra details</label>
+                            <textarea class="form-control" rows="6" th:field="*{requestText}" id="requestText"></textarea>
                         </div>
-                        <div class="suggestion-list mb-3">
-                            <span class="suggestion-chip">No equipment</span>
-                            <span class="suggestion-chip">Chair workout</span>
-                            <span class="suggestion-chip">Low impact</span>
-                            <span class="suggestion-chip">Back-friendly</span>
+                        <div class="suggestion-list mb-3" data-target-input="requestText">
+                            <button class="suggestion-chip" type="button" data-phrase="no equipment" th:text="#{recommend.quick.none}">No equipment</button>
+                            <button class="suggestion-chip" type="button" data-phrase="chair workout" th:text="#{recommend.quick.chair}">Chair workout</button>
+                            <button class="suggestion-chip" type="button" data-phrase="low impact" th:text="#{recommend.quick.low}">Low impact</button>
+                            <button class="suggestion-chip" type="button" data-phrase="back-friendly" th:text="#{recommend.quick.backFriendly}">Back-friendly</button>
                         </div>
-                        <button class="btn btn-dark" type="submit">Generate recommendation</button>
+                        <button class="btn btn-dark" type="submit" th:text="#{recommend.submit}">Generate recommendation</button>
                     </form>
                 </div>
             </div>
         </div>
-        <div class="col-lg-7">
+        <div>
             <div class="card border-0 shadow-sm h-100 recommendation-results">
                 <div class="card-body p-4">
-                    <h2>Recommendation result</h2>
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-wrap">
+                        <div>
+                            <span class="eyebrow" th:text="#{recommend.result.eyebrow}">Recommendation</span>
+                            <h2 class="mb-1" th:text="#{recommend.result}">Recommendation result</h2>
+                        </div>
+                    </div>
                     <div th:if="${result == null}" class="text-muted">
-                        Submit your request to see matched videos, explanation, and safety notes.
+                        <span th:text="#{recommend.empty}">Submit your request to see matched videos, explanation, and safety notes.</span>
                     </div>
                     <div th:if="${result != null}">
                         <h4 th:text="${result.title}"></h4>
+                        <p class="mb-2 fw-semibold" th:text="${result.summary}"></p>
                         <p class="text-muted" th:text="${result.explanation}"></p>
+                        <div class="alert alert-info" th:if="${result.fallbackUsed}" th:text="${result.fallbackMessage}"></div>
                         <div class="alert alert-warning" th:text="${result.safetyNotes}"></div>
+                        <div class="result-meta mb-3" th:if="${!#lists.isEmpty(result.appliedFilters)}">
+                            <span class="suggestion-chip active" th:each="filter : ${result.appliedFilters}" th:text="${filter}"></span>
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-6" th:each="video : ${result.videos}">
                                 <div class="result-card">
@@ -48,29 +116,83 @@
                                             <h5 class="result-title mb-0" th:text="${video.title}"></h5>
                                             <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
                                         </div>
-                                        <p class="small text-muted mt-2 mb-2" th:text="${video.description}"></p>
+                                        <p class="small text-muted mt-2 mb-2" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
                                         <div class="result-meta">
-                                            <span th:text="${video.sourceType}"></span>
-                                            <span th:text="${video.postureType}"></span>
-                                            <span th:text="${video.targetBodyPart}"></span>
+                                            <span th:text="${@ui.label(video.sourceType)}"></span>
+                                            <span th:text="${@ui.label(video.postureType)}"></span>
+                                            <span th:text="${@ui.label(video.targetBodyPart)}"></span>
+                                        </div>
+                                        <div class="suggestion-list mt-2" th:if="${!#strings.isEmpty(video.extraTags)}">
+                                            <span class="suggestion-chip"
+                                                  th:each="tag : ${@ui.optionalCsvLabels(video.extraTags)}"
+                                                  th:text="${tag}"></span>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="small fw-semibold mb-2" th:text="#{recommend.why}">Why this fits you</div>
+                                            <div class="suggestion-list">
+                                                <span class="suggestion-chip active"
+                                                      th:each="reason : ${result.videoReasons[video.id]}"
+                                                      th:text="${reason}"></span>
+                                            </div>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mt-3">
                                             <span class="small text-muted" th:text="${video.platformChannel}"></span>
                                             <div class="d-flex gap-2">
-                                                <a class="btn btn-sm btn-outline-dark" th:href="@{/videos/{id}(id=${video.id})}">Preview</a>
-                                                <a class="btn btn-sm btn-dark" target="_blank" th:href="${video.videoUrl}">Open source</a>
+                                                <a class="btn btn-sm btn-outline-dark" th:href="@{/videos/{id}(id=${video.id})}" th:text="#{recommend.preview}">Preview</a>
+                                                <a class="btn btn-sm btn-dark" target="_blank" th:href="${video.videoUrl}" th:text="#{recommend.open}">Open source</a>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <p class="small text-muted mt-3 mb-0">Saved plan id: <span th:text="${result.planId}"></span></p>
+                        <p class="small text-muted mt-3 mb-0"><span th:text="#{recommend.saved}">Saved plan id:</span> <span th:text="${result.planId}"></span></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.suggestion-list').forEach((container) => {
+            const input = document.getElementById(container.dataset.targetInput);
+            if (!input) {
+                return;
+            }
+
+            const normalize = (value) => value.trim().replace(/\s+/g, ' ');
+
+            const sync = () => {
+                const current = input.value.toLowerCase();
+                container.querySelectorAll('[data-phrase]').forEach((chip) => {
+                    chip.classList.toggle('active', current.includes(chip.dataset.phrase.toLowerCase()));
+                });
+            };
+
+            container.querySelectorAll('[data-phrase]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const phrase = chip.dataset.phrase;
+                    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const matcher = new RegExp(`(?:^|[\\s,，。;；])${escaped}(?=$|[\\s,，。;；])`, 'i');
+                    let current = normalize(input.value);
+
+                    if (matcher.test(current)) {
+                        current = normalize(current.replace(matcher, ' ').replace(/\s{2,}/g, ' '));
+                    } else {
+                        current = current ? `${current} ${phrase}` : phrase;
+                    }
+
+                    input.value = current.trim();
+                    input.focus();
+                    sync();
+                });
+            });
+
+            input.addEventListener('input', sync);
+            sync();
+        });
+    });
+</script>
 </body>
 </html>
