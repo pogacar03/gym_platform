@@ -27,6 +27,7 @@ public class RecommendationService {
     private final UserAccountService userAccountService;
     private final UserProfileService userProfileService;
     private final WorkoutVideoService workoutVideoService;
+    private final WorkoutVideoSearchService workoutVideoSearchService;
     private final RequestParsingService requestParsingService;
     private final RecommendationHistoryMapper recommendationHistoryMapper;
     private final WorkoutPlanMapper workoutPlanMapper;
@@ -37,6 +38,7 @@ public class RecommendationService {
             UserAccountService userAccountService,
             UserProfileService userProfileService,
             WorkoutVideoService workoutVideoService,
+            WorkoutVideoSearchService workoutVideoSearchService,
             RequestParsingService requestParsingService,
             RecommendationHistoryMapper recommendationHistoryMapper,
             WorkoutPlanMapper workoutPlanMapper,
@@ -46,6 +48,7 @@ public class RecommendationService {
         this.userAccountService = userAccountService;
         this.userProfileService = userProfileService;
         this.workoutVideoService = workoutVideoService;
+        this.workoutVideoSearchService = workoutVideoSearchService;
         this.requestParsingService = requestParsingService;
         this.recommendationHistoryMapper = recommendationHistoryMapper;
         this.workoutPlanMapper = workoutPlanMapper;
@@ -63,11 +66,11 @@ public class RecommendationService {
 
         ParsedRecommendationRequest parsed = requestParsingService.parse(requestText, profile);
         WorkoutVideoQuery query = toQuery(parsed, false);
-        List<WorkoutVideo> candidates = workoutVideoService.findCandidates(query);
+        List<WorkoutVideo> candidates = findCandidates(parsed, requestText, false, query);
         String fallbackMessage = null;
         if (candidates.isEmpty()) {
             query.setRelaxGoal(true);
-            candidates = workoutVideoService.findCandidates(query);
+            candidates = findCandidates(parsed, requestText, true, query);
             fallbackMessage = "No exact match was found, so the system relaxed the goal filter and kept safety-related conditions.";
         }
         if (candidates.isEmpty()) {
@@ -129,6 +132,64 @@ public class RecommendationService {
                 .sorted((left, right) -> Integer.compare(scoreVideo(parsed, right), scoreVideo(parsed, left)))
                 .limit(3)
                 .toList();
+    }
+
+    private List<WorkoutVideo> findCandidates(
+            ParsedRecommendationRequest parsed,
+            String requestText,
+            boolean relaxGoal,
+            WorkoutVideoQuery query
+    ) {
+        List<Long> searchIds = workoutVideoSearchService.searchCandidateIds(parsed, requestText, relaxGoal);
+        if (!searchIds.isEmpty()) {
+            List<WorkoutVideo> indexedCandidates = workoutVideoService.findByIdsPreservingOrder(searchIds).stream()
+                    .filter(video -> matchesSearchConstraints(video, parsed, relaxGoal))
+                    .toList();
+            if (!indexedCandidates.isEmpty()) {
+                return indexedCandidates;
+            }
+        }
+        return workoutVideoService.findCandidates(query);
+    }
+
+    private boolean matchesSearchConstraints(WorkoutVideo video, ParsedRecommendationRequest parsed, boolean relaxGoal) {
+        if (!relaxGoal && parsed.getGoal() != null && !matches(video.getTargetGoal(), parsed.getGoal())) {
+            return false;
+        }
+        if (parsed.getDurationMinutes() != null
+                && video.getDurationMinutes() != null
+                && video.getDurationMinutes() > parsed.getDurationMinutes()) {
+            return false;
+        }
+        if (parsed.isKneeSensitive() && "HIGH".equalsIgnoreCase(video.getImpactLevel())) {
+            return false;
+        }
+        if (parsed.isBackSensitive() && "CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
+            return false;
+        }
+        if (parsed.getPostureType() != null && !matches(video.getPostureType(), parsed.getPostureType())) {
+            return false;
+        }
+        if (parsed.getTargetArea() != null
+                && !matches(video.getTargetBodyPart(), parsed.getTargetArea())
+                && !"FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+            return false;
+        }
+        if (parsed.getImpactLevel() != null && !matches(video.getImpactLevel(), parsed.getImpactLevel())) {
+            return false;
+        }
+        if (parsed.getEquipment() != null) {
+            if ("NONE".equalsIgnoreCase(parsed.getEquipment()) && "SITTING".equalsIgnoreCase(parsed.getPostureType())) {
+                return matches(video.getEquipmentRequirement(), "NONE")
+                        || matches(video.getEquipmentRequirement(), "CHAIR");
+            }
+            if ("NONE".equalsIgnoreCase(parsed.getEquipment())) {
+                return matches(video.getEquipmentRequirement(), "NONE");
+            }
+            return matches(video.getEquipmentRequirement(), "NONE")
+                    || matches(video.getEquipmentRequirement(), parsed.getEquipment());
+        }
+        return true;
     }
 
     private WorkoutVideoQuery toQuery(ParsedRecommendationRequest parsed, boolean relaxGoal) {

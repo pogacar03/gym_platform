@@ -14,7 +14,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 @Configuration
-@EnableConfigurationProperties(AppLlmProperties.class)
+@EnableConfigurationProperties({AppLlmProperties.class, AppSearchProperties.class})
 @EnableScheduling
 public class AppConfig implements WebMvcConfigurer {
 

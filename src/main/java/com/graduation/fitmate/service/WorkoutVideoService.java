@@ -6,7 +6,9 @@ import com.graduation.fitmate.dto.WorkoutVideoQuery;
 import com.graduation.fitmate.entity.WorkoutVideo;
 import com.graduation.fitmate.mapper.WorkoutVideoMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +17,16 @@ public class WorkoutVideoService {
 
     private final WorkoutVideoMapper workoutVideoMapper;
     private final ImportedVideoTaggingService importedVideoTaggingService;
+    private final WorkoutVideoIndexService workoutVideoIndexService;
 
-    public WorkoutVideoService(WorkoutVideoMapper workoutVideoMapper, ImportedVideoTaggingService importedVideoTaggingService) {
+    public WorkoutVideoService(
+            WorkoutVideoMapper workoutVideoMapper,
+            ImportedVideoTaggingService importedVideoTaggingService,
+            WorkoutVideoIndexService workoutVideoIndexService
+    ) {
         this.workoutVideoMapper = workoutVideoMapper;
         this.importedVideoTaggingService = importedVideoTaggingService;
+        this.workoutVideoIndexService = workoutVideoIndexService;
     }
 
     public List<WorkoutVideo> findAllActive() {
@@ -50,6 +58,18 @@ public class WorkoutVideoService {
                 .eq(WorkoutVideo::getSourceType, sourceType)
                 .eq(WorkoutVideo::getSourceVideoId, sourceVideoId)
                 .last("limit 1"));
+    }
+
+    public List<WorkoutVideo> findByIdsPreservingOrder(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, WorkoutVideo> videosById = workoutVideoMapper.selectBatchIds(ids).stream()
+                .collect(Collectors.toMap(WorkoutVideo::getId, video -> video));
+        return ids.stream()
+                .map(videosById::get)
+                .filter(video -> video != null && Boolean.TRUE.equals(video.getActive()))
+                .toList();
     }
 
     public List<WorkoutVideo> findMissingTagVideos() {
@@ -148,6 +168,11 @@ public class WorkoutVideoService {
             workoutVideoMapper.insert(video);
         } else {
             workoutVideoMapper.updateById(video);
+        }
+        try {
+            workoutVideoIndexService.indexVideo(workoutVideoMapper.selectById(video.getId()));
+        } catch (Exception ignored) {
+            // Search indexing is best-effort. The relational write remains the source of truth.
         }
     }
 }

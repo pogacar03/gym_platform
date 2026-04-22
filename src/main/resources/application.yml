@@ -12,6 +12,8 @@ spring:
     hiddenmethod:
       filter:
         enabled: true
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
 server:
   servlet:
     session:
@@ -28,6 +30,10 @@ app:
     base-url: ${LLM_BASE_URL:https://api.openai.com/v1}
     api-key: ${LLM_API_KEY:}
     model: ${LLM_MODEL:gpt-4o-mini}
+  search:
+    enabled: ${SEARCH_ENABLED:true}
+    index-name: ${SEARCH_INDEX_NAME:workout_video_search}
+    candidate-limit: ${SEARCH_CANDIDATE_LIMIT:8}
 
 logging:
   level:
