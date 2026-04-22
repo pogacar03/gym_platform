@@ -138,6 +138,7 @@ public class RecommendationService {
         query.setEquipment(parsed.getEquipment());
         query.setPostureType(parsed.getPostureType());
         query.setTargetArea(parsed.getTargetArea());
+        query.setImpactLevel(parsed.getImpactLevel());
         query.setKneeSensitive(parsed.isKneeSensitive());
         query.setBackSensitive(parsed.isBackSensitive());
         query.setRelaxGoal(relaxGoal);
@@ -152,8 +153,9 @@ public class RecommendationService {
         String posture = parsed.getPostureType() == null ? "flexible posture" : humanizeEnum(parsed.getPostureType());
         String equipment = parsed.getEquipment() == null ? "available equipment" : humanizeEnum(parsed.getEquipment());
         String area = parsed.getTargetArea() == null ? "full-body support" : humanizeEnum(parsed.getTargetArea());
+        String impact = parsed.getImpactLevel() == null ? "a flexible intensity level" : humanizeEnum(parsed.getImpactLevel()) + " impact";
         return "Built around " + parsed.getDurationMinutes() + " minutes, " + posture + ", " + equipment
-                + ", and a focus on " + area + ". " + candidates.size() + " curated videos matched best.";
+                + ", " + impact + ", and a focus on " + area + ". " + candidates.size() + " curated videos matched best.";
     }
 
     private String buildExplanation(UserProfile profile, ParsedRecommendationRequest parsed, List<WorkoutVideo> candidates) {
@@ -176,6 +178,7 @@ public class RecommendationService {
                         parsed.getEquipment() == null ? null : "Equipment: " + humanizeEnum(parsed.getEquipment()),
                         parsed.getPostureType() == null ? null : "Posture: " + humanizeEnum(parsed.getPostureType()),
                         parsed.getTargetArea() == null ? null : "Target area: " + humanizeEnum(parsed.getTargetArea()),
+                        parsed.getImpactLevel() == null ? null : "Impact: " + humanizeEnum(parsed.getImpactLevel()),
                         parsed.getGoal() == null ? null : "Goal: " + humanizeGoal(parsed.getGoal()),
                         parsed.isKneeSensitive() ? "Knee-sensitive filter" : null,
                         parsed.isBackSensitive() ? "Back-friendly filter" : null,
@@ -202,6 +205,9 @@ public class RecommendationService {
                     if (matches(video.getTargetGoal(), parsed.getGoal())) {
                         reasons.add("Training goal is aligned");
                     }
+                    if (matches(video.getImpactLevel(), parsed.getImpactLevel())) {
+                        reasons.add("Impact level matches your request");
+                    }
                     if (parsed.isKneeSensitive() && !"HIGH".equalsIgnoreCase(video.getImpactLevel())) {
                         reasons.add("Lower-impact option");
                     }
@@ -227,6 +233,9 @@ public class RecommendationService {
             score += 4;
         }
         if (matches(video.getTargetGoal(), parsed.getGoal())) {
+            score += 3;
+        }
+        if (matches(video.getImpactLevel(), parsed.getImpactLevel())) {
             score += 3;
         }
         if (matches(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {

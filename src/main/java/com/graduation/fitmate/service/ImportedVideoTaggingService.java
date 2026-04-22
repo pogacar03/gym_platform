@@ -5,10 +5,15 @@ import com.graduation.fitmate.entity.ImportSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ImportedVideoTaggingService {
+
+    private static final Pattern DURATION_PATTERN =
+            Pattern.compile("(\\d{1,3})\\s*(分钟|mins?|minutes?)", Pattern.CASE_INSENSITIVE);
 
     public ImportedVideoSuggestion suggest(ImportSource source, String title, String description) {
         String text = (title + " " + (description == null ? "" : description)).toLowerCase(Locale.ROOT);
@@ -173,6 +178,19 @@ public class ImportedVideoTaggingService {
             return "HIGH";
         }
         return "MEDIUM";
+    }
+
+    public Integer inferDurationMinutes(String title, String description) {
+        String text = (title == null ? "" : title) + " " + (description == null ? "" : description);
+        Matcher matcher = DURATION_PATTERN.matcher(text);
+        if (!matcher.find()) {
+            return null;
+        }
+        int duration = Integer.parseInt(matcher.group(1));
+        if (duration <= 0 || duration > 180) {
+            return null;
+        }
+        return duration;
     }
 
     private boolean containsAny(String text, String... terms) {

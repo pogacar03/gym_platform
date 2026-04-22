@@ -27,4 +27,14 @@ class ImportedVideoTaggingServiceTest {
         Assertions.assertEquals("LOW", suggestion.getImpactLevel());
         Assertions.assertTrue(suggestion.getConfidenceScore().doubleValue() >= 0.5);
     }
+
+    @Test
+    void shouldInferDurationFromVideoTitle() {
+        Integer duration = service.inferDurationMinutes(
+                "20 Min Seated Back Workout for Beginners",
+                "Low impact chair workout."
+        );
+
+        Assertions.assertEquals(20, duration);
+    }
 }

@@ -21,6 +21,7 @@ public class RequestParsingService {
         parsed.setEquipment(detectEquipment(text, profile));
         parsed.setPostureType(detectPosture(text, profile));
         parsed.setTargetArea(detectTargetArea(text, profile));
+        parsed.setImpactLevel(detectImpactLevel(text));
         parsed.setKneeSensitive(Boolean.TRUE.equals(profile.getKneeSensitive()) || containsAny(text, "膝", "knee"));
         parsed.setBackSensitive(Boolean.TRUE.equals(profile.getBackSensitive()) || containsAny(text, "腰", "back"));
 
@@ -109,6 +110,19 @@ public class RequestParsingService {
             return "LEGS";
         }
         return firstValue(profile.getTargetAreas(), null);
+    }
+
+    private String detectImpactLevel(String text) {
+        if (containsAny(text, "低冲击", "low impact", "gentle")) {
+            return "LOW";
+        }
+        if (containsAny(text, "高强度", "high intensity", "hiit", "高冲击", "high impact")) {
+            return "HIGH";
+        }
+        if (containsAny(text, "中等强度", "moderate intensity", "medium impact", "moderate")) {
+            return "MEDIUM";
+        }
+        return null;
     }
 
     private String firstValue(String csv, String defaultValue) {

@@ -47,6 +47,9 @@
         <if test="query.targetArea != null and query.targetArea != ''">
             AND (target_body_part = #{query.targetArea} OR target_body_part = 'FULL_BODY')
         </if>
+        <if test="query.impactLevel != null and query.impactLevel != ''">
+            AND impact_level = #{query.impactLevel}
+        </if>
         <if test="query.equipment != null and query.equipment != '' and query.equipment == 'NONE' and query.postureType == 'SITTING'">
             AND equipment_requirement IN ('NONE', 'CHAIR')
         </if>
@@ -60,6 +63,7 @@
             CASE WHEN target_goal = #{query.goal} THEN 0 ELSE 1 END,
             CASE WHEN posture_type = #{query.postureType} THEN 0 ELSE 1 END,
             CASE WHEN target_body_part = #{query.targetArea} THEN 0 ELSE 1 END,
+            CASE WHEN impact_level = #{query.impactLevel} THEN 0 ELSE 1 END,
             CASE WHEN equipment_requirement = #{query.equipment} THEN 0 ELSE 1 END,
             duration_minutes ASC
         LIMIT 6

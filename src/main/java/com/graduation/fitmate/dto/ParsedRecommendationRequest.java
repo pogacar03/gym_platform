@@ -11,6 +11,7 @@ public class ParsedRecommendationRequest {
     private String equipment;
     private String postureType;
     private String targetArea;
+    private String impactLevel;
     private boolean kneeSensitive;
     private boolean backSensitive;
     private final List<String> safetyFlags = new ArrayList<>();

@@ -130,6 +130,15 @@ public class DashboardService {
         if (latestPlan == null) {
             return;
         }
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        Long alreadyCompletedToday = workoutLogMapper.selectCount(new LambdaQueryWrapper<WorkoutLog>()
+                .eq(WorkoutLog::getUserId, account.getId())
+                .eq(WorkoutLog::getPlanId, latestPlan.getId())
+                .eq(WorkoutLog::getStatus, "COMPLETED")
+                .ge(WorkoutLog::getCompletedAt, startOfDay));
+        if (alreadyCompletedToday != null && alreadyCompletedToday > 0) {
+            return;
+        }
         WorkoutLog log = new WorkoutLog();
         log.setUserId(account.getId());
         log.setPlanId(latestPlan.getId());

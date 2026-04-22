@@ -41,4 +41,17 @@ class RequestParsingServiceTest {
         Assertions.assertEquals("CHAIR", parsed.getEquipment());
         Assertions.assertTrue(parsed.isKneeSensitive());
     }
+
+    @Test
+    void shouldParseImpactLevelFromStructuredPhrases() {
+        UserProfile profile = new UserProfile();
+        profile.setFitnessGoal("RECOVERY");
+        profile.setAvailableEquipment("NONE");
+        profile.setPreferredDurationMinutes(20);
+
+        ParsedRecommendationRequest parsed = service.parse("20 minutes, no equipment, low impact, back workout", profile);
+
+        Assertions.assertEquals("LOW", parsed.getImpactLevel());
+        Assertions.assertEquals("BACK", parsed.getTargetArea());
+    }
 }

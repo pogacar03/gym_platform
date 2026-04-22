@@ -36,6 +36,8 @@ import org.xml.sax.InputSource;
 @Service
 public class VideoImportService {
 
+    private record FeedFetchResult(List<ImportedVideo> videos, boolean failed, String message) {}
+
     private final ImportSourceMapper importSourceMapper;
     private final ImportedVideoMapper importedVideoMapper;
     private final ImportedVideoTaggingService taggingService;
@@ -75,9 +77,14 @@ public class VideoImportService {
         if (source == null) {
             return 0;
         }
-        List<ImportedVideo> fetched = fetchYoutubeChannelFeed(source);
+        FeedFetchResult fetchResult = fetchYoutubeChannelFeed(source);
+        if (fetchResult.failed()) {
+            markSourceResult(source, "FAILED", fetchResult.message());
+            return 0;
+        }
+        List<ImportedVideo> fetched = fetchResult.videos();
         if (fetched.isEmpty()) {
-            markSourceResult(source, "NO_UPDATES", "No new videos found or source could not be read.");
+            markSourceResult(source, "NO_UPDATES", "No new videos found.");
             return 0;
         }
         int importedCount = 0;
@@ -177,7 +184,12 @@ public class VideoImportService {
         video.setTargetGoal(importedVideo.getSuggestedGoal());
         video.setTargetBodyPart(importedVideo.getSuggestedTargetArea());
         video.setEquipmentRequirement(importedVideo.getSuggestedEquipment());
-        video.setDurationMinutes(15);
+        Integer inferredDuration = taggingService.inferDurationMinutes(importedVideo.getTitle(), importedVideo.getDescription());
+        if (inferredDuration != null) {
+            video.setDurationMinutes(inferredDuration);
+        } else if (existing != null) {
+            video.setDurationMinutes(existing.getDurationMinutes());
+        }
         video.setImpactLevel(importedVideo.getSuggestedImpactLevel());
         video.setExtraTags(importedVideo.getSuggestedExtraTags());
         video.setSafetyNotes(importedVideo.getSafetyFlags());
@@ -231,9 +243,9 @@ public class VideoImportService {
         importedVideoMapper.updateById(importedVideo);
     }
 
-    private List<ImportedVideo> fetchYoutubeChannelFeed(ImportSource source) {
+    private FeedFetchResult fetchYoutubeChannelFeed(ImportSource source) {
         if (!"YOUTUBE_CHANNEL".equals(source.getSourceType())) {
-            return List.of();
+            return new FeedFetchResult(List.of(), true, "Unsupported source type: " + source.getSourceType());
         }
         String url = "https://www.youtube.com/feeds/videos.xml?channel_id=" + source.getExternalId();
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
@@ -243,12 +255,14 @@ public class VideoImportService {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
-                return List.of();
+                return new FeedFetchResult(List.of(), true, "Source returned HTTP " + response.statusCode() + ".");
             }
-            return parseFeed(source, response.body());
-        } catch (IOException | InterruptedException ex) {
+            return new FeedFetchResult(parseFeed(source, response.body()), false, "OK");
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            return List.of();
+            return new FeedFetchResult(List.of(), true, "Import was interrupted.");
+        } catch (IOException ex) {
+            return new FeedFetchResult(List.of(), true, "Could not reach source feed.");
         }
     }
 
