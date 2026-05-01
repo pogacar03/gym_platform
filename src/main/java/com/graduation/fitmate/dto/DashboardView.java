@@ -4,6 +4,7 @@ import com.graduation.fitmate.entity.UserProfile;
 import com.graduation.fitmate.entity.WorkoutLog;
 import com.graduation.fitmate.entity.WorkoutPlan;
 import com.graduation.fitmate.entity.WorkoutVideo;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -27,6 +28,9 @@ public class DashboardView {
     private int missingTagCount;
     private String nextSuggestedSession;
     private String lastRecommendationSummary;
+    private String latestFeedbackCode;
+    private String latestFeedbackLabel;
+    private LocalDateTime latestFeedbackRecordedAt;
     private final List<String> focusTags = new ArrayList<>();
     private final List<DashboardDayStatus> weeklyRhythm = new ArrayList<>();
     private final List<WorkoutLog> recentLogs = new ArrayList<>();

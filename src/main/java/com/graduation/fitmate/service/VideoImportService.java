@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,6 +38,7 @@ import org.xml.sax.InputSource;
 public class VideoImportService {
 
     private record FeedFetchResult(List<ImportedVideo> videos, boolean failed, String message) {}
+    private record ParsedFeedResult(List<ImportedVideo> videos, boolean channelMismatch, String actualChannel) {}
 
     private final ImportSourceMapper importSourceMapper;
     private final ImportedVideoMapper importedVideoMapper;
@@ -88,31 +90,26 @@ public class VideoImportService {
             return 0;
         }
         int importedCount = 0;
+        int refreshedCount = 0;
         for (ImportedVideo candidate : fetched) {
-            Long existing = importedVideoMapper.selectCount(new LambdaQueryWrapper<ImportedVideo>()
+            ImportedVideo existing = importedVideoMapper.selectOne(new LambdaQueryWrapper<ImportedVideo>()
                     .eq(ImportedVideo::getSourceId, sourceId)
-                    .eq(ImportedVideo::getSourceVideoId, candidate.getSourceVideoId()));
-            if (existing != null && existing > 0) {
+                    .eq(ImportedVideo::getSourceVideoId, candidate.getSourceVideoId())
+                    .last("limit 1"));
+            if (existing != null) {
+                refreshImportedVideo(source, existing, candidate);
+                refreshedCount++;
                 continue;
             }
-            ImportedVideoSuggestion suggestion = taggingService.suggest(source, candidate.getTitle(), candidate.getDescription());
-            candidate.setSuggestedGoal(suggestion.getGoal());
-            candidate.setSuggestedEquipment(suggestion.getEquipment());
-            candidate.setSuggestedPosture(suggestion.getPosture());
-            candidate.setSuggestedTargetArea(suggestion.getTargetArea());
-            candidate.setSuggestedDifficulty(suggestion.getDifficulty());
-            candidate.setSuggestedImpactLevel(suggestion.getImpactLevel());
-            candidate.setSuggestedExtraTags(String.join(",", suggestion.getExtraTags()));
-            candidate.setSafetyFlags(String.join(",", suggestion.getSafetyFlags()));
-            candidate.setConfidenceScore(suggestion.getConfidenceScore());
+            applySuggestions(source, candidate);
             candidate.setImportStatus("PENDING");
             importedVideoMapper.insert(candidate);
             importedCount++;
 
             if (Boolean.TRUE.equals(source.getAutoApproveConfident())
-                    && suggestion.getConfidenceScore() != null
-                    && suggestion.getConfidenceScore().compareTo(new BigDecimal("0.80")) >= 0
-                    && !String.join(",", suggestion.getSafetyFlags()).contains("REVIEW")) {
+                    && candidate.getConfidenceScore() != null
+                    && candidate.getConfidenceScore().compareTo(new BigDecimal("0.80")) >= 0
+                    && !firstNonBlank(candidate.getSafetyFlags(), "").contains("REVIEW")) {
                 ImportedVideoReviewForm reviewForm = new ImportedVideoReviewForm();
                 reviewForm.setSuggestedGoal(candidate.getSuggestedGoal());
                 reviewForm.setSuggestedEquipment(candidate.getSuggestedEquipment());
@@ -125,9 +122,12 @@ public class VideoImportService {
                 approveImportedVideo(candidate.getId(), reviewForm);
             }
         }
-        markSourceResult(source, "SUCCESS", importedCount == 0
-                ? "Checked source successfully. No new staged videos."
-                : "Imported " + importedCount + " new staged videos.");
+        if (importedCount == 0 && refreshedCount == 0) {
+            markSourceResult(source, "SUCCESS", "Checked source successfully. No new staged videos.");
+        } else {
+            markSourceResult(source, "SUCCESS",
+                    "Imported " + importedCount + " new staged videos and refreshed " + refreshedCount + " existing entries.");
+        }
         return importedCount;
     }
 
@@ -173,36 +173,7 @@ public class VideoImportService {
         importedVideo.setSuggestedImpactLevel(firstNonBlank(reviewForm.getSuggestedImpactLevel(), importedVideo.getSuggestedImpactLevel()));
         importedVideo.setSuggestedExtraTags(firstNonBlank(reviewForm.getSuggestedExtraTags(), importedVideo.getSuggestedExtraTags()));
 
-        WorkoutVideo video = new WorkoutVideo();
-        WorkoutVideo existing = workoutVideoService.findBySourceReference("YOUTUBE", importedVideo.getSourceVideoId());
-        if (existing != null) {
-            video.setId(existing.getId());
-        }
-        video.setTitle(importedVideo.getTitle());
-        video.setDescription(importedVideo.getDescription());
-        video.setDifficulty(importedVideo.getSuggestedDifficulty());
-        video.setTargetGoal(importedVideo.getSuggestedGoal());
-        video.setTargetBodyPart(importedVideo.getSuggestedTargetArea());
-        video.setEquipmentRequirement(importedVideo.getSuggestedEquipment());
-        Integer inferredDuration = taggingService.inferDurationMinutes(importedVideo.getTitle(), importedVideo.getDescription());
-        if (inferredDuration != null) {
-            video.setDurationMinutes(inferredDuration);
-        } else if (existing != null) {
-            video.setDurationMinutes(existing.getDurationMinutes());
-        }
-        video.setImpactLevel(importedVideo.getSuggestedImpactLevel());
-        video.setExtraTags(importedVideo.getSuggestedExtraTags());
-        video.setSafetyNotes(importedVideo.getSafetyFlags());
-        video.setSourceType("YOUTUBE");
-        video.setSourceVideoId(importedVideo.getSourceVideoId());
-        video.setPlatformChannel(importedVideo.getChannelName());
-        video.setEmbedUrl("https://www.youtube.com/embed/" + importedVideo.getSourceVideoId());
-        video.setPostureType(importedVideo.getSuggestedPosture());
-        video.setVideoUrl(importedVideo.getVideoUrl());
-        video.setThumbnailUrl(importedVideo.getThumbnailUrl());
-        video.setCurated(true);
-        video.setActive(true);
-        workoutVideoService.save(video);
+        upsertWorkoutVideoFromImported(importedVideo);
 
         importedVideo.setImportStatus("APPROVED");
         importedVideo.setReviewNote(firstNonBlank(reviewForm.getReviewNote(), "Approved by admin"));
@@ -257,7 +228,15 @@ public class VideoImportService {
             if (response.statusCode() >= 400) {
                 return new FeedFetchResult(List.of(), true, "Source returned HTTP " + response.statusCode() + ".");
             }
-            return new FeedFetchResult(parseFeed(source, response.body()), false, "OK");
+            ParsedFeedResult parsedFeed = parseFeed(source, response.body());
+            if (parsedFeed.channelMismatch()) {
+                return new FeedFetchResult(
+                        List.of(),
+                        true,
+                        "Source channel mismatch. Expected " + source.getChannelName() + " but feed returned " + parsedFeed.actualChannel() + "."
+                );
+            }
+            return new FeedFetchResult(parsedFeed.videos(), false, "OK");
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             return new FeedFetchResult(List.of(), true, "Import was interrupted.");
@@ -266,28 +245,34 @@ public class VideoImportService {
         }
     }
 
-    private List<ImportedVideo> parseFeed(ImportSource source, String xml) {
+    private ParsedFeedResult parseFeed(ImportSource source, String xml) {
         List<ImportedVideo> videos = new ArrayList<>();
         try {
             Document document = DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
                     .parse(new InputSource(new StringReader(xml)));
             NodeList entries = document.getElementsByTagName("entry");
+            String actualChannel = null;
             for (int i = 0; i < entries.getLength(); i++) {
                 Element entry = (Element) entries.item(i);
                 String videoId = textContent(entry, "yt:videoId");
                 String title = textContent(entry, "title");
                 String published = textContent(entry, "published");
                 String author = textContent(entry, "name");
+                String description = textContent(entry, "media:description");
+                String thumbnailUrl = thumbnailUrl(entry);
                 if (videoId == null || title == null) {
                     continue;
+                }
+                if (actualChannel == null && author != null) {
+                    actualChannel = author;
                 }
                 ImportedVideo importedVideo = new ImportedVideo();
                 importedVideo.setSourceId(source.getId());
                 importedVideo.setSourceVideoId(videoId);
                 importedVideo.setTitle(title);
-                importedVideo.setDescription(title);
-                importedVideo.setThumbnailUrl("https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg");
+                importedVideo.setDescription(firstNonBlank(description, title));
+                importedVideo.setThumbnailUrl(firstNonBlank(thumbnailUrl, "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg"));
                 importedVideo.setVideoUrl("https://www.youtube.com/watch?v=" + videoId);
                 importedVideo.setChannelName(author == null ? source.getChannelName() : author);
                 if (published != null) {
@@ -295,10 +280,15 @@ public class VideoImportService {
                 }
                 videos.add(importedVideo);
             }
+            if (actualChannel != null
+                    && source.getChannelName() != null
+                    && !sameChannel(source.getChannelName(), actualChannel)) {
+                return new ParsedFeedResult(List.of(), true, actualChannel);
+            }
         } catch (Exception ignored) {
-            return List.of();
+            return new ParsedFeedResult(List.of(), false, null);
         }
-        return videos;
+        return new ParsedFeedResult(videos, false, null);
     }
 
     private String textContent(Element parent, String tagName) {
@@ -307,6 +297,15 @@ public class VideoImportService {
             return null;
         }
         return nodes.item(0).getTextContent();
+    }
+
+    private String thumbnailUrl(Element parent) {
+        NodeList nodes = parent.getElementsByTagName("media:thumbnail");
+        if (nodes.getLength() == 0) {
+            return null;
+        }
+        Element element = (Element) nodes.item(0);
+        return element.getAttribute("url");
     }
 
     private long countBySource(Long sourceId, String status) {
@@ -335,5 +334,77 @@ public class VideoImportService {
 
     private String firstNonBlank(String preferred, String fallback) {
         return preferred != null && !preferred.isBlank() ? preferred : fallback;
+    }
+
+    private void applySuggestions(ImportSource source, ImportedVideo importedVideo) {
+        ImportedVideoSuggestion suggestion = taggingService.suggest(source, importedVideo.getTitle(), importedVideo.getDescription());
+        importedVideo.setSuggestedGoal(suggestion.getGoal());
+        importedVideo.setSuggestedEquipment(suggestion.getEquipment());
+        importedVideo.setSuggestedPosture(suggestion.getPosture());
+        importedVideo.setSuggestedTargetArea(suggestion.getTargetArea());
+        importedVideo.setSuggestedDifficulty(suggestion.getDifficulty());
+        importedVideo.setSuggestedImpactLevel(suggestion.getImpactLevel());
+        importedVideo.setSuggestedExtraTags(String.join(",", suggestion.getExtraTags()));
+        importedVideo.setSafetyFlags(String.join(",", suggestion.getSafetyFlags()));
+        importedVideo.setConfidenceScore(suggestion.getConfidenceScore());
+    }
+
+    private void refreshImportedVideo(ImportSource source, ImportedVideo existing, ImportedVideo candidate) {
+        existing.setTitle(candidate.getTitle());
+        existing.setDescription(candidate.getDescription());
+        existing.setThumbnailUrl(candidate.getThumbnailUrl());
+        existing.setVideoUrl(candidate.getVideoUrl());
+        existing.setChannelName(candidate.getChannelName());
+        existing.setPublishedAt(candidate.getPublishedAt());
+        applySuggestions(source, existing);
+        importedVideoMapper.updateById(existing);
+        if ("APPROVED".equals(existing.getImportStatus())) {
+            upsertWorkoutVideoFromImported(existing);
+        }
+    }
+
+    private void upsertWorkoutVideoFromImported(ImportedVideo importedVideo) {
+        WorkoutVideo video = new WorkoutVideo();
+        WorkoutVideo existing = workoutVideoService.findBySourceReference("YOUTUBE", importedVideo.getSourceVideoId());
+        if (existing != null) {
+            video.setId(existing.getId());
+        }
+        video.setTitle(importedVideo.getTitle());
+        video.setDescription(importedVideo.getDescription());
+        video.setDifficulty(importedVideo.getSuggestedDifficulty());
+        video.setTargetGoal(importedVideo.getSuggestedGoal());
+        video.setTargetBodyPart(importedVideo.getSuggestedTargetArea());
+        video.setEquipmentRequirement(importedVideo.getSuggestedEquipment());
+        Integer inferredDuration = taggingService.inferDurationMinutes(importedVideo.getTitle(), importedVideo.getDescription());
+        if (inferredDuration != null) {
+            video.setDurationMinutes(inferredDuration);
+        } else if (existing != null) {
+            video.setDurationMinutes(existing.getDurationMinutes());
+        }
+        video.setImpactLevel(importedVideo.getSuggestedImpactLevel());
+        video.setExtraTags(importedVideo.getSuggestedExtraTags());
+        video.setSafetyNotes(importedVideo.getSafetyFlags());
+        video.setSourceType("YOUTUBE");
+        video.setSourceVideoId(importedVideo.getSourceVideoId());
+        video.setPlatformChannel(importedVideo.getChannelName());
+        video.setEmbedUrl("https://www.youtube.com/embed/" + importedVideo.getSourceVideoId());
+        video.setPostureType(importedVideo.getSuggestedPosture());
+        video.setVideoUrl(importedVideo.getVideoUrl());
+        video.setThumbnailUrl(importedVideo.getThumbnailUrl());
+        video.setCurated(true);
+        video.setActive(true);
+        workoutVideoService.save(video);
+    }
+
+    private boolean sameChannel(String expected, String actual) {
+        String normalizedExpected = normalizeChannelName(expected);
+        String normalizedActual = normalizeChannelName(actual);
+        return normalizedActual.equals(normalizedExpected)
+                || normalizedActual.startsWith(normalizedExpected)
+                || normalizedExpected.startsWith(normalizedActual);
+    }
+
+    private String normalizeChannelName(String value) {
+        return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class ImportedVideoTaggingService {
 
     private static final Pattern DURATION_PATTERN =
-            Pattern.compile("(\\d{1,3})\\s*(分钟|mins?|minutes?)", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("(\\d{1,3})\\s*[-–—]?\\s*(分钟|mins?|minutes?)", Pattern.CASE_INSENSITIVE);
 
     public ImportedVideoSuggestion suggest(ImportSource source, String title, String description) {
         String text = (title + " " + (description == null ? "" : description)).toLowerCase(Locale.ROOT);

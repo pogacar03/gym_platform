@@ -1,0 +1,17 @@
+spring:
+  thymeleaf:
+    cache: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:false}
+        same-site: lax
+
+logging:
+  level:
+    root: INFO
+    com.graduation.fitmate: INFO

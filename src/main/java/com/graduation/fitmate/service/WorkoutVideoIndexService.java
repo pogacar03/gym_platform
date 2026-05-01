@@ -3,18 +3,22 @@ package com.graduation.fitmate.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.mapping.DenseVectorProperty;
 import co.elastic.clients.elasticsearch._types.mapping.BooleanProperty;
 import co.elastic.clients.elasticsearch._types.mapping.IntegerNumberProperty;
 import co.elastic.clients.elasticsearch._types.mapping.KeywordProperty;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import co.elastic.clients.elasticsearch._types.mapping.TextProperty;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.graduation.fitmate.config.AppSearchProperties;
 import com.graduation.fitmate.entity.WorkoutVideo;
 import com.graduation.fitmate.mapper.WorkoutVideoMapper;
 import com.graduation.fitmate.search.WorkoutVideoSearchDocument;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -28,15 +32,18 @@ public class WorkoutVideoIndexService {
     private final ElasticsearchClient elasticsearchClient;
     private final AppSearchProperties searchProperties;
     private final WorkoutVideoMapper workoutVideoMapper;
+    private final EmbeddingService embeddingService;
 
     public WorkoutVideoIndexService(
             ElasticsearchClient elasticsearchClient,
             AppSearchProperties searchProperties,
-            WorkoutVideoMapper workoutVideoMapper
+            WorkoutVideoMapper workoutVideoMapper,
+            EmbeddingService embeddingService
     ) {
         this.elasticsearchClient = elasticsearchClient;
         this.searchProperties = searchProperties;
         this.workoutVideoMapper = workoutVideoMapper;
+        this.embeddingService = embeddingService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -76,14 +83,18 @@ public class WorkoutVideoIndexService {
             return;
         }
         try {
-            if (!rebuildIndex()) {
+            boolean ready = searchProperties.rebuildOnStartup() ? rebuildIndex() : ensureIndex();
+            if (!ready) {
                 return;
             }
             List<WorkoutVideo> activeVideos = workoutVideoMapper.selectList(new LambdaQueryWrapper<WorkoutVideo>()
                     .eq(WorkoutVideo::getActive, true));
+            Set<String> activeIds = new HashSet<>();
             for (WorkoutVideo video : activeVideos) {
+                activeIds.add(String.valueOf(video.getId()));
                 indexDocument(video);
             }
+            pruneInactiveDocuments(activeIds);
             log.info("Synchronized {} active videos into Elasticsearch index {}",
                     activeVideos.size(), searchProperties.indexName());
         } catch (Exception ex) {
@@ -136,6 +147,28 @@ public class WorkoutVideoIndexService {
         );
     }
 
+    private void pruneInactiveDocuments(Set<String> activeIds) throws IOException {
+        SearchResponse<WorkoutVideoSearchDocument> response = elasticsearchClient.search(request -> request
+                        .index(searchProperties.indexName())
+                        .size(10_000),
+                WorkoutVideoSearchDocument.class
+        );
+        int removed = 0;
+        for (var hit : response.hits().hits()) {
+            if (hit.id() == null || activeIds.contains(hit.id())) {
+                continue;
+            }
+            elasticsearchClient.delete(request -> request
+                    .index(searchProperties.indexName())
+                    .id(hit.id())
+            );
+            removed++;
+        }
+        if (removed > 0) {
+            log.info("Removed {} stale Elasticsearch documents from index {}", removed, searchProperties.indexName());
+        }
+    }
+
     private WorkoutVideoSearchDocument toDocument(WorkoutVideo video) {
         return WorkoutVideoSearchDocument.builder()
                 .videoId(video.getId())
@@ -153,6 +186,7 @@ public class WorkoutVideoIndexService {
                 .active(Boolean.TRUE.equals(video.getActive()))
                 .curated(Boolean.TRUE.equals(video.getCurated()))
                 .searchText(buildSearchText(video))
+                .embedding(embeddingService.embed(buildSearchText(video)))
                 .build();
     }
 
@@ -172,7 +206,12 @@ public class WorkoutVideoIndexService {
                 Map.entry("durationMinutes", Property.of(property -> property.integer(IntegerNumberProperty.of(integer -> integer)))),
                 Map.entry("active", Property.of(property -> property.boolean_(BooleanProperty.of(bool -> bool)))),
                 Map.entry("curated", Property.of(property -> property.boolean_(BooleanProperty.of(bool -> bool)))),
-                Map.entry("searchText", Property.of(property -> property.text(TextProperty.of(text -> text))))
+                Map.entry("searchText", Property.of(property -> property.text(TextProperty.of(text -> text)))),
+                Map.entry("embedding", Property.of(property -> property.denseVector(DenseVectorProperty.of(vector -> vector
+                        .dims(searchProperties.embeddingDimensions())
+                        .index(searchProperties.vectorEnabled())
+                        .similarity("cosine")
+                ))))
         );
     }
 

@@ -13,7 +13,7 @@
     </div>
     <div class="recommendation-layout">
         <div>
-            <div class="card border-0 shadow-sm recommendation-panel">
+            <div class="card border-0 shadow-sm recommendation-panel request-builder">
                 <div class="card-body p-4">
                     <span class="eyebrow" th:text="#{recommend.quick.eyebrow}">Quick setup</span>
                     <h2 class="mb-2" th:text="#{recommend.quick.title}">Build the request</h2>
@@ -95,28 +95,80 @@
                             <h2 class="mb-1" th:text="#{recommend.result}">Recommendation result</h2>
                         </div>
                     </div>
-                    <div th:if="${result == null}" class="text-muted">
-                        <span th:text="#{recommend.empty}">Submit your request to see matched videos, explanation, and safety notes.</span>
+                    <div th:if="${result == null}" class="recommendation-empty-state">
+                        <div class="empty-state-mark">FIT</div>
+                        <h3 class="mb-2" th:text="#{recommend.result}">Recommendation result</h3>
+                        <p class="text-muted mb-0" th:text="#{recommend.empty}">Submit your request to receive matched videos, practical reasoning and safety notes.</p>
                     </div>
                     <div th:if="${result != null}">
-                        <h4 th:text="${result.title}"></h4>
-                        <p class="mb-2 fw-semibold" th:text="${result.summary}"></p>
-                        <p class="text-muted" th:text="${result.explanation}"></p>
+                        <div class="result-overview">
+                            <h4 th:text="${result.title}"></h4>
+                            <p class="mb-2 fw-semibold" th:text="${result.summary}"></p>
+                            <p class="text-muted mb-0" th:text="${result.evidenceSummary}"></p>
+                        </div>
+                        <div class="evidence-grid mt-3">
+                            <div class="evidence-card" th:if="${!#lists.isEmpty(result.fitReasons)}">
+                                <div class="evidence-card-label" th:text="#{recommend.evidence.fit}">Why it fits</div>
+                                <ul class="evidence-list">
+                                    <li th:each="reason : ${result.fitReasons}" th:text="${reason}"></li>
+                                </ul>
+                            </div>
+                            <div class="evidence-card caution" th:if="${!#lists.isEmpty(result.cautionItems)}">
+                                <div class="evidence-card-label" th:text="#{recommend.evidence.caution}">Safety boundary</div>
+                                <ul class="evidence-list">
+                                    <li th:each="item : ${result.cautionItems}" th:text="${item}"></li>
+                                </ul>
+                            </div>
+                            <div class="evidence-card" th:if="${!#lists.isEmpty(result.filteredOutReasons)}">
+                                <div class="evidence-card-label" th:text="#{recommend.evidence.filtered}">Filtered out</div>
+                                <ul class="evidence-list">
+                                    <li th:each="reason : ${result.filteredOutReasons}" th:text="${reason}"></li>
+                                </ul>
+                            </div>
+                            <div class="evidence-card" th:if="${!#lists.isEmpty(result.knowledgeReferences)}">
+                                <div class="evidence-card-label" th:text="#{recommend.evidence.references}">Knowledge references</div>
+                                <div class="suggestion-list">
+                                    <span class="suggestion-chip active"
+                                          th:each="reference : ${result.knowledgeReferences}"
+                                          th:text="${reference}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-light border py-2 small mt-3" th:if="${result.candidateSummary}" th:text="${result.candidateSummary}"></div>
+                        <div class="alert alert-secondary py-2 small" th:if="${result.retrievalSummary}" th:text="${result.retrievalSummary}"></div>
+                        <div class="alert alert-primary py-2 small" th:if="${result.feedbackAdjustment}" th:text="${result.feedbackAdjustment}"></div>
                         <div class="alert alert-info" th:if="${result.fallbackUsed}" th:text="${result.fallbackMessage}"></div>
                         <div class="alert alert-warning" th:text="${result.safetyNotes}"></div>
+                        <details class="explanation-details mb-3">
+                            <summary th:text="#{recommend.evidence.fullExplanation}">Full recommendation explanation</summary>
+                            <p class="text-muted mt-2 mb-0" th:text="${result.explanation}"></p>
+                        </details>
+                        <div class="mt-3" th:if="${!#lists.isEmpty(result.knowledgeNotes)}">
+                            <div class="small fw-semibold mb-2" th:text="#{recommend.knowledge.title}">Coach notes</div>
+                            <div class="row g-3">
+                                <div class="col-md-4" th:each="note : ${result.knowledgeNotes}">
+                                    <div class="result-card coach-note-card h-100">
+                                        <div class="result-content">
+                                            <h6 class="result-title mb-2" th:text="${note.title}">Start with a gentle warm-up first.</h6>
+                                            <p class="small text-muted mb-0" th:text="${note.body}">Use the first 2 to 3 minutes to mobilize shoulders, hips and ankles before you follow the main workout.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="result-meta mb-3" th:if="${!#lists.isEmpty(result.appliedFilters)}">
                             <span class="suggestion-chip active" th:each="filter : ${result.appliedFilters}" th:text="${filter}"></span>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6" th:each="video : ${result.videos}">
-                                <div class="result-card">
+                                <div class="result-card recommendation-video-card">
                                     <img class="result-thumbnail" th:src="${video.thumbnailUrl}" th:alt="${video.title}">
                                     <div class="result-content">
                                         <div class="d-flex justify-content-between align-items-start gap-2">
                                             <h5 class="result-title mb-0" th:text="${video.title}"></h5>
                                             <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
                                         </div>
-                                        <p class="small text-muted mt-2 mb-2" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
+                                        <p class="small text-muted mt-2 mb-2" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description unavailable.'))}"></p>
                                         <div class="result-meta">
                                             <span th:text="${@ui.label(video.sourceType)}"></span>
                                             <span th:text="${@ui.label(video.postureType)}"></span>
@@ -135,7 +187,15 @@
                                                       th:text="${reason}"></span>
                                             </div>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div class="mt-3" th:if="${result.scoreBreakdown[video.id] != null}">
+                                            <div class="small fw-semibold mb-2" th:text="#{recommend.score.title}">Why it ranked here</div>
+                                            <div class="suggestion-list">
+                                                <span class="suggestion-chip"
+                                                      th:each="line : ${result.scoreBreakdown[video.id]}"
+                                                      th:text="${line}"></span>
+                                            </div>
+                                        </div>
+                                        <div class="video-action-row mt-3">
                                             <span class="small text-muted" th:text="${video.platformChannel}"></span>
                                             <div class="d-flex gap-2">
                                                 <a class="btn btn-sm btn-outline-dark" th:href="@{/videos/{id}(id=${video.id})}" th:text="#{recommend.preview}">Preview</a>

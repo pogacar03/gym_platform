@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{admin.knowledge.pageTitle})}"></head>
+<body class="bg-light admin-console">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4 gap-3 flex-wrap">
+        <div>
+            <span class="eyebrow" th:text="#{admin.knowledge.eyebrow}">Recommendation knowledge base</span>
+            <h2 class="mb-1" th:text="#{admin.knowledge.title}">Knowledge library</h2>
+            <p class="text-muted mb-0" th:text="#{admin.knowledge.subtitle}">Maintain coaching guidelines, safety notes, and training principles used by recommendation explanations.</p>
+        </div>
+        <form th:action="@{/admin/knowledge/reindex}" method="post">
+            <button class="btn btn-outline-dark" type="submit" th:text="#{admin.knowledge.reindex}">Reindex knowledge</button>
+        </form>
+    </div>
+
+    <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h4 th:text="#{admin.knowledge.import.title}">Import a document</h4>
+                    <p class="text-muted small" th:text="#{admin.knowledge.import.help}">Paste validated training guidance. The system splits it into retrievable chunks and indexes it for recommendation-time retrieval.</p>
+                    <form th:action="@{/admin/knowledge}" th:object="${knowledgeForm}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label" th:text="#{admin.knowledge.form.title}">Title</label>
+                            <input class="form-control" th:field="*{title}" th:attr="placeholder=#{admin.knowledge.form.titlePlaceholder}">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{admin.knowledge.form.sourceType}">Source type</label>
+                                <select class="form-select" th:field="*{sourceType}">
+                                    <option value="GUIDELINE" th:text="#{admin.knowledge.source.guideline}">Guideline</option>
+                                    <option value="ARTICLE" th:text="#{admin.knowledge.source.article}">Article</option>
+                                    <option value="PHYSIO_NOTE" th:text="#{admin.knowledge.source.physio}">Physio note</option>
+                                    <option value="COURSE_NOTE" th:text="#{admin.knowledge.source.course}">Course note</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{admin.knowledge.form.language}">Language</label>
+                                <select class="form-select" th:field="*{language}">
+                                    <option value="zh_CN">中文</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label" th:text="#{admin.knowledge.form.sourceName}">Source name</label>
+                            <input class="form-control" th:field="*{sourceName}" th:attr="placeholder=#{admin.knowledge.form.sourceNamePlaceholder}">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{admin.knowledge.form.topic}">Topic</label>
+                                <input class="form-control" th:field="*{topic}" th:attr="placeholder=#{admin.knowledge.form.topicPlaceholder}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" th:text="#{admin.knowledge.form.tags}">Tags</label>
+                                <input class="form-control" th:field="*{tags}" th:attr="placeholder=#{admin.knowledge.form.tagsPlaceholder}">
+                            </div>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label" th:text="#{admin.knowledge.form.content}">Content</label>
+                            <textarea class="form-control" rows="12" th:field="*{content}" th:attr="placeholder=#{admin.knowledge.form.contentPlaceholder}"></textarea>
+                        </div>
+                        <button class="btn btn-dark" type="submit" th:text="#{admin.knowledge.import.submit}">Import and index</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0" th:text="#{admin.knowledge.documents.title}">Indexed documents</h4>
+                        <span class="badge rounded-pill text-bg-dark" th:text="${#lists.size(documents)}">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th th:text="#{admin.knowledge.documents.document}">Document</th>
+                                <th th:text="#{admin.knowledge.documents.scope}">Scope</th>
+                                <th th:text="#{admin.knowledge.documents.chunks}">Chunks</th>
+                                <th th:text="#{admin.knowledge.documents.status}">Status</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(documents)}">
+                                <td colspan="5" class="text-muted" th:text="#{admin.knowledge.documents.empty}">No knowledge documents yet.</td>
+                            </tr>
+                            <tr th:each="item : ${documents}">
+                                <td>
+                                    <strong th:text="${item.document.title}"></strong>
+                                    <div class="small text-muted" th:text="${item.document.sourceName != null ? item.document.sourceName : item.document.sourceType}"></div>
+                                </td>
+                                <td class="small">
+                                    <div th:text="${item.document.language}"></div>
+                                    <div th:text="${item.document.topic != null ? item.document.topic : @ui.message('admin.knowledge.documents.general', 'General')}"></div>
+                                    <div class="suggestion-list mt-1" th:if="${!#strings.isEmpty(item.document.tags)}">
+                                        <span class="suggestion-chip" th:each="tag : ${#strings.arraySplit(item.document.tags, ',')}" th:text="${tag}"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill text-bg-secondary" th:text="${item.chunkCount}">0</span>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill"
+                                          th:classappend="${item.document.status == 'ACTIVE'} ? ' text-bg-success' : ' text-bg-secondary'"
+                                          th:text="${@ui.label(item.document.status)}">Active</span>
+                                </td>
+                                <td>
+                                    <form th:if="${item.document.status == 'ACTIVE'}" th:action="@{/admin/knowledge/{id}/archive(id=${item.document.id})}" method="post">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit" th:text="#{admin.knowledge.documents.archive}">Archive</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-light border mt-3 mb-0 small" th:text="#{admin.knowledge.documents.note}">
+                        Recommendation explanations can cite these chunks when they match the user's request, selected videos, and safety context.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

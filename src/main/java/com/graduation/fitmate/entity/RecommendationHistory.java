@@ -18,6 +18,6 @@ public class RecommendationHistory {
     private String parsedEquipment;
     private String safetyFlags;
     private String explanation;
+    private String evidenceJson;
     private LocalDateTime createdAt;
 }
-

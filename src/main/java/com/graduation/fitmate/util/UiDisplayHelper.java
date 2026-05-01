@@ -77,4 +77,20 @@ public class UiDisplayHelper {
     public String message(String key, String fallback) {
         return messageSource.getMessage(key, null, fallback, LocaleContextHolder.getLocale());
     }
+
+    public String workoutFeedback(String note) {
+        if (note == null || note.isBlank()) {
+            return message("dashboard.recent.defaultNote", "Dashboard completion");
+        }
+        if (!note.startsWith("USER_FEEDBACK:")) {
+            return note;
+        }
+        String code = note.substring("USER_FEEDBACK:".length());
+        return switch (code) {
+            case "TOO_EASY" -> message("dashboard.feedback.timeline.easy", "Feedback: the last plan felt too easy");
+            case "JUST_RIGHT" -> message("dashboard.feedback.timeline.justRight", "Feedback: the last plan felt just right");
+            case "TOO_HARD" -> message("dashboard.feedback.timeline.hard", "Feedback: the last plan felt too hard");
+            default -> note;
+        };
+    }
 }

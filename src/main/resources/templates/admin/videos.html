@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head(#{admin.videos.pageTitle})}"></head>
-<body class="bg-light">
+<body class="bg-light admin-console">
 <div th:replace="~{fragments/nav :: nav}"></div>
 <div class="container pb-5">
     <div class="row g-4">
@@ -9,7 +9,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <h3 th:text="#{admin.videos.title}">Add or update workout video</h3>
-                    <p class="text-muted" th:text="#{admin.videos.subtitle}">Use YouTube as the primary source for HKU demos, while preserving multi-source support.</p>
+                    <p class="text-muted" th:text="#{admin.videos.subtitle}">Maintain the workout catalog, source links, thumbnails and recommendation tags.</p>
                     <div class="alert alert-success" th:if="${message}" th:text="${message}"></div>
                     <form th:action="@{/admin/videos}" th:object="${videoForm}" method="post">
                         <input type="hidden" th:field="*{id}">

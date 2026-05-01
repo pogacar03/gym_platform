@@ -98,6 +98,16 @@ public class DashboardService {
                 .eq(RecommendationHistory::getUserId, account.getId()));
         view.setRecommendationCount(recommendationCount == null ? 0 : recommendationCount.intValue());
         view.getRecentLogs().addAll(completedLogs.stream().limit(4).toList());
+        WorkoutLog latestFeedbackLog = completedLogs.stream()
+                .filter(log -> parseFeedbackCode(log.getFeedbackNote()) != null)
+                .findFirst()
+                .orElse(null);
+        if (latestFeedbackLog != null) {
+            String code = parseFeedbackCode(latestFeedbackLog.getFeedbackNote());
+            view.setLatestFeedbackCode(code);
+            view.setLatestFeedbackLabel(localizeFeedbackCode(code));
+            view.setLatestFeedbackRecordedAt(latestFeedbackLog.getCompletedAt());
+        }
         RecommendationHistory lastRecommendation = recommendationHistoryMapper.selectOne(new LambdaQueryWrapper<RecommendationHistory>()
                 .eq(RecommendationHistory::getUserId, account.getId())
                 .orderByDesc(RecommendationHistory::getCreatedAt)
@@ -147,6 +157,38 @@ public class DashboardService {
         log.setFeedbackNote("Completed from dashboard quick action");
         log.setCompletedAt(LocalDateTime.now());
         workoutLogMapper.insert(log);
+    }
+
+    @Transactional
+    public void recordLatestPlanFeedback(String username, String feedbackCode) {
+        UserAccount account = userAccountService.findByUsername(username);
+        WorkoutPlan latestPlan = findLatestPlan(account.getId());
+        if (latestPlan == null || feedbackCode == null || feedbackCode.isBlank()) {
+            return;
+        }
+        WorkoutLog latestLog = workoutLogMapper.selectOne(new LambdaQueryWrapper<WorkoutLog>()
+                .eq(WorkoutLog::getUserId, account.getId())
+                .eq(WorkoutLog::getPlanId, latestPlan.getId())
+                .eq(WorkoutLog::getStatus, "COMPLETED")
+                .orderByDesc(WorkoutLog::getCompletedAt)
+                .last("limit 1"));
+        if (latestLog == null) {
+            latestLog = new WorkoutLog();
+            latestLog.setUserId(account.getId());
+            latestLog.setPlanId(latestPlan.getId());
+            latestLog.setStatus("COMPLETED");
+            latestLog.setCompletedAt(LocalDateTime.now());
+            latestLog.setFatigueLevel(mapFatigueLevel(feedbackCode));
+            latestLog.setFeedbackNote("USER_FEEDBACK:" + feedbackCode);
+            workoutLogMapper.insert(latestLog);
+            return;
+        }
+        latestLog.setFatigueLevel(mapFatigueLevel(feedbackCode));
+        latestLog.setFeedbackNote("USER_FEEDBACK:" + feedbackCode);
+        if (latestLog.getCompletedAt() == null) {
+            latestLog.setCompletedAt(LocalDateTime.now());
+        }
+        workoutLogMapper.updateById(latestLog);
     }
 
     private WorkoutPlan findLatestPlan(Long userId) {
@@ -207,6 +249,32 @@ public class DashboardService {
             return null;
         }
         return csv.split(",")[0].trim();
+    }
+
+    private Integer mapFatigueLevel(String feedbackCode) {
+        return switch (feedbackCode) {
+            case "TOO_EASY" -> 1;
+            case "JUST_RIGHT" -> 3;
+            case "TOO_HARD" -> 5;
+            default -> 3;
+        };
+    }
+
+    private String parseFeedbackCode(String note) {
+        if (note == null || note.isBlank() || !note.startsWith("USER_FEEDBACK:")) {
+            return null;
+        }
+        return note.substring("USER_FEEDBACK:".length());
+    }
+
+    private String localizeFeedbackCode(String code) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return switch (code) {
+            case "TOO_EASY" -> messageSource.getMessage("dashboard.feedback.easy", null, "Too easy", locale);
+            case "JUST_RIGHT" -> messageSource.getMessage("dashboard.feedback.justRight", null, "Just right", locale);
+            case "TOO_HARD" -> messageSource.getMessage("dashboard.feedback.hard", null, "Too hard", locale);
+            default -> code;
+        };
     }
 
     private String buildNextSuggestedSession(UserProfile profile) {

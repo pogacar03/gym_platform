@@ -28,4 +28,6 @@ public class WorkoutVideoSearchDocument {
     private Boolean active;
     private Boolean curated;
     private String searchText;
+    @Builder.Default
+    private List<Float> embedding = new ArrayList<>();
 }

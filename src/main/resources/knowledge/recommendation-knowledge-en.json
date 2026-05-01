@@ -1,0 +1,68 @@
+[
+  {
+    "id": "warmup-general",
+    "title": "Start with a gentle warm-up first.",
+    "body": "Use the first 2 to 3 minutes to mobilize shoulders, hips and ankles before you follow the main workout. A short warm-up usually makes the session feel safer and smoother.",
+    "tags": ["GENERAL"]
+  },
+  {
+    "id": "short-session-focus",
+    "title": "Short sessions work best when transitions stay simple.",
+    "body": "For 10 to 15 minute sessions, keep setup changes to a minimum and stay with one clear focus. That makes it easier to finish the full workout without losing momentum.",
+    "tags": ["DURATION_SHORT"]
+  },
+  {
+    "id": "chair-posture",
+    "title": "Use the chair for support, not for slumping.",
+    "body": "When the plan uses seated work, keep both feet grounded and sit tall through the spine. A stable chair setup helps you get the benefit of the session without collapsing your posture.",
+    "tags": ["POSTURE_SITTING", "EQUIPMENT_CHAIR"]
+  },
+  {
+    "id": "no-equipment",
+    "title": "No-equipment sessions depend on control and consistency.",
+    "body": "Without equipment, range of motion, pacing and posture matter more than speed. Move deliberately and repeat a sustainable effort instead of rushing through reps.",
+    "tags": ["EQUIPMENT_NONE"]
+  },
+  {
+    "id": "low-impact",
+    "title": "Low-impact training should still feel purposeful.",
+    "body": "Low-impact does not mean ineffective. Use steady breathing and controlled tempo to raise effort without adding jumping or abrupt landing stress.",
+    "tags": ["IMPACT_LOW", "LOW_IMPACT", "KNEE_FRIENDLY"]
+  },
+  {
+    "id": "knee-sensitive",
+    "title": "Protect the knees by reducing sudden loading.",
+    "body": "If the knees are sensitive, favor stable foot placement, smaller ranges and slower changes of direction. Stop if discomfort rises from muscular effort to joint pain.",
+    "tags": ["KNEE_SENSITIVE", "IMPACT_LOW"]
+  },
+  {
+    "id": "back-sensitive",
+    "title": "Back-friendly sessions should feel long and supported.",
+    "body": "For back-sensitive days, prioritize neutral spine positions and avoid forcing large twisting ranges. If a movement makes you brace or hold your breath, scale it back immediately.",
+    "tags": ["BACK_SENSITIVE", "TARGET_BACK", "BACK_FRIENDLY"]
+  },
+  {
+    "id": "recovery-goal",
+    "title": "Recovery sessions should leave you feeling better than when you started.",
+    "body": "A recovery-focused session is successful when it restores confidence and movement quality. Keep the effort moderate and finish with enough energy to continue your day comfortably.",
+    "tags": ["GOAL_RECOVERY", "RECOVERY_FOCUS"]
+  },
+  {
+    "id": "weight-loss-goal",
+    "title": "Consistency matters more than one very hard session.",
+    "body": "For weight-loss focused training, the best session is one you can repeat several times a week. Build a rhythm you can sustain instead of chasing a single exhausting workout.",
+    "tags": ["GOAL_WEIGHT_LOSS", "MIXED_CARDIO"]
+  },
+  {
+    "id": "core-goal",
+    "title": "Core work is stronger when breathing stays steady.",
+    "body": "For trunk-focused training, keep breathing smooth instead of bracing aggressively through every rep. Controlled breathing usually leads to better stability and less unnecessary tension.",
+    "tags": ["GOAL_CORE_STRENGTH", "TARGET_CORE"]
+  },
+  {
+    "id": "beginner-pace",
+    "title": "Beginner-friendly sessions should feel repeatable.",
+    "body": "If a session feels too fast, pause between movements and restart with less range or fewer reps. Good beginner progress comes from repeatable sessions, not perfect intensity on day one.",
+    "tags": ["DIFFICULTY_BEGINNER", "BEGINNER_FRIENDLY"]
+  }
+]

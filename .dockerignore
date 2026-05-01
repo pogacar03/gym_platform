@@ -1,0 +1,10 @@
+.git
+.idea
+.codex
+target
+*.log
+.DS_Store
+README.md
+docs
+memory.md
+spec.md

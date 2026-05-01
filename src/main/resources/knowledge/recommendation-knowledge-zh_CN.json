@@ -1,0 +1,68 @@
+[
+  {
+    "id": "warmup-general",
+    "title": "先用温和热身把身体叫醒。",
+    "body": "正式跟练前先花 2 到 3 分钟活动肩、髋和踝关节。一个短热身通常能让后面的训练更顺，也更安全。",
+    "tags": ["GENERAL"]
+  },
+  {
+    "id": "short-session-focus",
+    "title": "短时训练更适合少切换、强聚焦。",
+    "body": "如果这次只有 10 到 15 分钟，尽量减少器械和动作切换，把重点放在一个清晰目标上，这样更容易完整做完并保持节奏。",
+    "tags": ["DURATION_SHORT"]
+  },
+  {
+    "id": "chair-posture",
+    "title": "椅子训练要把椅子当支撑，而不是靠着塌下去。",
+    "body": "做坐姿训练时，双脚尽量稳稳踩地，脊柱保持向上延展。稳定的坐姿会让动作更有效，也更不容易因为姿势松散而代偿。",
+    "tags": ["POSTURE_SITTING", "EQUIPMENT_CHAIR"]
+  },
+  {
+    "id": "no-equipment",
+    "title": "无器械训练更依赖动作控制和稳定节奏。",
+    "body": "没有器械时，动作幅度、节奏和姿势质量会比速度更重要。与其赶进度，不如保持可持续、可重复的发力感觉。",
+    "tags": ["EQUIPMENT_NONE"]
+  },
+  {
+    "id": "low-impact",
+    "title": "低冲击训练也可以很有效。",
+    "body": "低冲击不代表没效果。通过稳定呼吸和受控节奏，同样可以提高训练感受，同时减少跳跃和落地带来的负担。",
+    "tags": ["IMPACT_LOW", "LOW_IMPACT", "KNEE_FRIENDLY"]
+  },
+  {
+    "id": "knee-sensitive",
+    "title": "膝盖敏感时，要减少突然受力和急转方向。",
+    "body": "如果膝盖容易不适，优先选择落脚稳定、动作幅度可控、转向较慢的训练。如果不适从肌肉疲劳变成关节疼痛，应立即停止。",
+    "tags": ["KNEE_SENSITIVE", "IMPACT_LOW"]
+  },
+  {
+    "id": "back-sensitive",
+    "title": "背部友好训练要以支撑感和延展感为主。",
+    "body": "背部敏感时，尽量保持脊柱中立，避免大幅度扭转和憋气硬撑。如果某个动作让你必须屏住呼吸才能完成，就说明需要立刻降级。",
+    "tags": ["BACK_SENSITIVE", "TARGET_BACK", "BACK_FRIENDLY"]
+  },
+  {
+    "id": "recovery-goal",
+    "title": "恢复训练的目标，是做完后身体状态更舒服。",
+    "body": "恢复导向的训练不需要追求很强烈的疲劳感。更理想的结果是动作变得更顺、身体更敢动、结束后还能轻松继续当天安排。",
+    "tags": ["GOAL_RECOVERY", "RECOVERY_FOCUS"]
+  },
+  {
+    "id": "weight-loss-goal",
+    "title": "减脂训练更看重稳定重复，而不是一次练到极限。",
+    "body": "如果目标是减脂，最有效的方案通常不是某一节特别累的训练，而是你每周都能稳定完成的训练节奏。",
+    "tags": ["GOAL_WEIGHT_LOSS", "MIXED_CARDIO"]
+  },
+  {
+    "id": "core-goal",
+    "title": "核心训练越能稳定呼吸，效果通常越好。",
+    "body": "以核心为重点时，不必每一下都用力憋紧。平稳呼吸、保持控制，往往比激进发力更容易建立真正的稳定性。",
+    "tags": ["GOAL_CORE_STRENGTH", "TARGET_CORE"]
+  },
+  {
+    "id": "beginner-pace",
+    "title": "新手友好的训练，重点是可重复而不是一次做到完美。",
+    "body": "如果节奏太快，可以在动作之间多停一拍，或者缩小幅度、减少次数。真正有效的新手方案，是下次还愿意继续做的方案。",
+    "tags": ["DIFFICULTY_BEGINNER", "BEGINNER_FRIENDLY"]
+  }
+]

@@ -10,7 +10,7 @@
                 <div class="card-body p-4">
                     <span class="eyebrow" th:text="${@ui.label(video.sourceType)}"></span>
                     <h1 class="mb-2" th:text="${video.title}"></h1>
-                    <p class="text-muted" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description still needs editorial polish.'))}"></p>
+                    <p class="text-muted" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description unavailable.'))}"></p>
                     <div class="suggestion-list mb-3">
                         <span class="suggestion-chip" th:text="${@ui.label(video.targetGoal)}"></span>
                         <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>

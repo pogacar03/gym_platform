@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <nav th:fragment="nav" class="site-nav">
     <div class="container">
@@ -16,8 +16,9 @@
                 <a class="nav-link" th:href="@{/profile}" th:text="#{nav.profile}">Profile</a>
                 <a class="nav-link" th:href="@{/videos}" th:text="#{nav.library}">Library</a>
                 <a class="nav-link" th:href="@{/recommendations}" th:text="#{nav.recommend}">Recommend</a>
-                <a class="nav-link" th:href="@{/admin/videos}" th:text="#{nav.admin}">Admin</a>
-                <a class="nav-link" th:href="@{/admin/imports}" th:text="#{nav.imports}">Imports</a>
+                <a class="nav-link nav-link-admin" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/videos}" th:text="#{nav.admin}">Admin</a>
+                <a class="nav-link nav-link-admin" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/imports}" th:text="#{nav.imports}">Imports</a>
+                <a class="nav-link nav-link-admin" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/knowledge}" th:text="#{nav.knowledge}">Knowledge</a>
                 <a class="nav-link" th:href="@{/logout}" th:text="#{nav.logout}">Logout</a>
             </div>
             <div th:replace="~{fragments/lang-switch :: switcher}"></div>

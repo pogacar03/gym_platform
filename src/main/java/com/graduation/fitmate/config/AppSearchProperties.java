@@ -6,6 +6,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record AppSearchProperties(
         boolean enabled,
         String indexName,
-        int candidateLimit
+        int candidateLimit,
+        boolean vectorEnabled,
+        int embeddingDimensions,
+        int vectorCandidates,
+        double lexicalWeight,
+        double vectorWeight,
+        boolean rebuildOnStartup,
+        String knowledgeIndexName,
+        int knowledgeCandidateLimit
 ) {
 }
