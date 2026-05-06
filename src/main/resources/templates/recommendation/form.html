@@ -6,9 +6,9 @@
 <div class="container page-shell">
     <div class="page-hero mb-4">
         <div>
-            <span class="eyebrow" th:text="#{recommend.eyebrow}">Session request</span>
-            <h1 class="mb-2" th:text="#{recommend.title}">Describe your ideal session</h1>
-            <p class="text-muted mb-0" th:text="#{recommend.example}">Example: I want a 20-minute seated back workout with no equipment and low impact.</p>
+            <span class="eyebrow" th:text="#{recommend.eyebrow}">Smart video finder</span>
+            <h1 class="mb-2" th:text="#{recommend.title}">Build a session from the video library</h1>
+            <p class="text-muted mb-0" th:text="#{recommend.example}">Choose the training setup first, then add one sentence for anything personal.</p>
         </div>
     </div>
     <div class="recommendation-layout">
@@ -16,10 +16,17 @@
             <div class="card border-0 shadow-sm recommendation-panel request-builder">
                 <div class="card-body p-4">
                     <span class="eyebrow" th:text="#{recommend.quick.eyebrow}">Quick setup</span>
-                    <h2 class="mb-2" th:text="#{recommend.quick.title}">Build the request</h2>
-                    <p class="text-muted" th:text="#{recommend.quick.help}">Start with the quick filters, then add one sentence if you want to be more specific.</p>
+                    <h2 class="mb-2" th:text="#{recommend.quick.title}">Build your session</h2>
+                    <p class="text-muted" th:text="#{recommend.quick.help}">Follow the steps: setup, target area, safety boundary, then optional AI notes.</p>
                     <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
                     <form th:action="@{/recommendations}" th:object="${recommendationRequest}" method="post">
+                        <div class="builder-step">
+                            <div class="builder-step-number">1</div>
+                            <div>
+                                <h5 th:text="#{recommend.step.setup}">Choose setup</h5>
+                                <p class="text-muted small mb-3" th:text="#{recommend.step.setupHelp}">These choices become structured retrieval filters.</p>
+                            </div>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label" th:text="#{recommend.quick.duration}">Duration</label>
@@ -36,19 +43,20 @@
                                 <select class="form-select" th:field="*{quickPosture}">
                                     <option value="" th:text="#{recommend.quick.any}">Any</option>
                                     <option value="standing" th:text="#{recommend.quick.standing}">Standing</option>
-                                    <option value="chair workout" th:text="#{recommend.quick.chair}">Chair workout</option>
+                                    <option value="chair-supported seated" th:text="#{recommend.quick.chair}">Seated / chair-supported</option>
                                     <option value="floor workout" th:text="#{recommend.quick.floor}">Floor workout</option>
                                 </select>
+                                <div class="form-text" th:text="#{recommend.quick.postureHelp}">Choose the body position or training setup.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" th:text="#{recommend.quick.equipment}">Equipment</label>
                                 <select class="form-select" th:field="*{quickEquipment}">
                                     <option value="" th:text="#{recommend.quick.any}">Any</option>
-                                    <option value="no equipment" th:text="#{recommend.quick.none}">No equipment</option>
-                                    <option value="chair" th:text="#{recommend.quick.chairOnly}">Chair</option>
+                                    <option value="bodyweight only no equipment" th:text="#{recommend.quick.none}">Bodyweight only</option>
                                     <option value="bands" th:text="#{recommend.quick.bands}">Bands</option>
                                     <option value="dumbbell" th:text="#{recommend.quick.dumbbell}">Dumbbell</option>
                                 </select>
+                                <div class="form-text" th:text="#{recommend.quick.equipmentHelp}">Choose extra tools. A chair is handled by the seated setup above.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" th:text="#{recommend.quick.intensity}">Intensity</label>
@@ -59,16 +67,104 @@
                                     <option value="high intensity" th:text="#{recommend.quick.high}">High</option>
                                 </select>
                             </div>
-                            <div class="col-12">
-                                <label class="form-label" th:text="#{recommend.quick.target}">Target area</label>
-                                <select class="form-select" th:field="*{quickTargetArea}">
-                                    <option value="" th:text="#{recommend.quick.any}">Any</option>
-                                    <option value="arms" th:text="#{recommend.quick.arms}">Arms</option>
-                                    <option value="back" th:text="#{recommend.quick.back}">Back</option>
-                                    <option value="core" th:text="#{recommend.quick.core}">Core</option>
-                                    <option value="legs" th:text="#{recommend.quick.legs}">Legs</option>
-                                    <option value="glutes" th:text="#{recommend.quick.glutes}">Glutes</option>
-                                </select>
+                        </div>
+                        <div class="builder-step mt-4">
+                            <div class="builder-step-number">2</div>
+                            <div>
+                                <h5 th:text="#{recommend.step.target}">Pick target area</h5>
+                                <p class="text-muted small mb-3" th:text="#{recommend.step.targetHelp}">Tap a muscle region instead of guessing a keyword.</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="quickTargetArea" th:field="*{quickTargetArea}">
+                        <div class="body-map-layout recommendation-body-map mb-3">
+                            <div class="body-map-card">
+                                <div class="body-map" data-target-input="quickTargetArea" data-mode="single">
+                                    <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{recommend.body.front}">
+                                        <g class="body-base">
+                                            <circle cx="110" cy="38" r="24"></circle>
+                                            <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
+                                            <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
+                                            <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
+                                        </g>
+                                        <g class="muscle-layer detailed-muscle-layer">
+                                            <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Shoulders" d="M78 80 C66 84,58 94,54 108 C60 116,72 117,84 108 C88 96,86 86,78 80 Z"></path>
+                                            <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Shoulders" d="M142 80 C154 84,162 94,166 108 C160 116,148 117,136 108 C132 96,134 86,142 80 Z"></path>
+                                            <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Chest" d="M84 94 C94 86,104 86,110 92 L108 128 C96 130,86 124,80 116 Z"></path>
+                                            <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Chest" d="M136 94 C126 86,116 86,110 92 L112 128 C124 130,134 124,140 116 Z"></path>
+                                            <path class="muscle-zone muscle-biceps" data-value="BICEPS" tabindex="0" role="button" aria-label="Biceps" d="M58 120 C66 114,76 116,82 126 L76 158 C70 166,60 164,56 154 Z"></path>
+                                            <path class="muscle-zone muscle-biceps" data-value="BICEPS" tabindex="0" role="button" aria-label="Biceps" d="M162 120 C154 114,144 116,138 126 L144 158 C150 166,160 164,164 154 Z"></path>
+                                            <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Abs" d="M96 132 L108 130 L108 196 L93 194 Z"></path>
+                                            <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Abs" d="M112 130 L124 132 L127 194 L112 196 Z"></path>
+                                            <path class="muscle-zone muscle-oblique" data-value="OBLIQUES" tabindex="0" role="button" aria-label="Obliques" d="M86 128 C92 146,92 174,88 198 L80 190 C78 164,80 142,86 128 Z"></path>
+                                            <path class="muscle-zone muscle-oblique" data-value="OBLIQUES" tabindex="0" role="button" aria-label="Obliques" d="M134 128 C128 146,128 174,132 198 L140 190 C142 164,140 142,134 128 Z"></path>
+                                            <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Quads" d="M88 226 C94 222,106 224,111 238 L108 303 L86 304 L82 266 C82 248,84 235,88 226 Z"></path>
+                                            <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Quads" d="M132 226 C126 222,114 224,109 238 L112 303 L134 304 L138 266 C138 248,136 235,132 226 Z"></path>
+                                            <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Knees" cx="96" cy="307" rx="9" ry="7"></ellipse>
+                                            <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Knees" cx="124" cy="307" rx="9" ry="7"></ellipse>
+                                            <path class="muscle-zone muscle-shin" data-value="CALVES" tabindex="0" role="button" aria-label="Calves" d="M88 313 L105 313 L103 386 L88 386 Z"></path>
+                                            <path class="muscle-zone muscle-shin" data-value="CALVES" tabindex="0" role="button" aria-label="Calves" d="M115 313 L132 313 L132 386 L117 386 Z"></path>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="body-map-card">
+                                <div class="body-map" data-target-input="quickTargetArea" data-mode="single">
+                                    <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{recommend.body.back}">
+                                        <g class="body-base">
+                                            <circle cx="110" cy="38" r="24"></circle>
+                                            <path d="M76 68 C88 54,132 54,144 68 L154 116 C158 132,150 158,142 176 L136 212 C132 228,128 244,126 262 L122 388 L98 388 L94 262 C92 244,88 228,84 212 L78 176 C70 158,62 132,66 116 Z"></path>
+                                            <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
+                                            <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
+                                        </g>
+                                        <g class="muscle-layer detailed-muscle-layer">
+                                            <path class="muscle-zone muscle-trap" data-value="TRAPS" tabindex="0" role="button" aria-label="Traps" d="M92 80 C100 70,120 70,128 80 L120 98 L100 98 Z"></path>
+                                            <path class="muscle-zone muscle-lat" data-value="LATS" tabindex="0" role="button" aria-label="Lats" d="M84 118 C96 134,102 158,106 188 L90 198 C84 174,78 144,84 118 Z"></path>
+                                            <path class="muscle-zone muscle-lat" data-value="LATS" tabindex="0" role="button" aria-label="Lats" d="M136 118 C124 134,118 158,114 188 L130 198 C136 174,142 144,136 118 Z"></path>
+                                            <path class="muscle-zone muscle-spine" data-value="LOWER_BACK" tabindex="0" role="button" aria-label="Lower back" d="M98 126 L108 130 L107 218 L94 214 Z"></path>
+                                            <path class="muscle-zone muscle-spine" data-value="LOWER_BACK" tabindex="0" role="button" aria-label="Lower back" d="M112 130 L122 126 L126 214 L113 218 Z"></path>
+                                            <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Rear shoulders" d="M76 84 C86 76,96 78,102 88 L94 106 C84 106,78 98,76 84 Z"></path>
+                                            <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Rear shoulders" d="M144 84 C134 76,124 78,118 88 L126 106 C136 106,142 98,144 84 Z"></path>
+                                            <path class="muscle-zone muscle-triceps" data-value="TRICEPS" tabindex="0" role="button" aria-label="Triceps" d="M56 124 C64 116,74 118,80 128 L76 164 C70 170,60 164,56 154 Z"></path>
+                                            <path class="muscle-zone muscle-triceps" data-value="TRICEPS" tabindex="0" role="button" aria-label="Triceps" d="M164 124 C156 116,146 118,140 128 L144 164 C150 170,160 164,164 154 Z"></path>
+                                            <path class="muscle-zone muscle-glute" data-value="GLUTES" tabindex="0" role="button" aria-label="Glutes" d="M88 184 C98 176,107 176,111 182 L108 222 C98 226,90 218,86 206 Z"></path>
+                                            <path class="muscle-zone muscle-glute" data-value="GLUTES" tabindex="0" role="button" aria-label="Glutes" d="M132 184 C122 176,113 176,109 182 L112 222 C122 226,130 218,134 206 Z"></path>
+                                            <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Hamstrings" d="M88 232 C96 228,104 228,109 234 L104 306 L88 306 L84 268 C84 252,85 240,88 232 Z"></path>
+                                            <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Hamstrings" d="M132 232 C124 228,116 228,111 234 L116 306 L132 306 L136 268 C136 252,135 240,132 232 Z"></path>
+                                            <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Knees" cx="96" cy="307" rx="9" ry="7"></ellipse>
+                                            <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Knees" cx="124" cy="307" rx="9" ry="7"></ellipse>
+                                            <path class="muscle-zone muscle-calf" data-value="CALVES" tabindex="0" role="button" aria-label="Calves" d="M88 314 L106 314 L103 386 L88 386 Z"></path>
+                                            <path class="muscle-zone muscle-calf" data-value="CALVES" tabindex="0" role="button" aria-label="Calves" d="M114 314 L132 314 L132 386 L117 386 Z"></path>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="suggestion-list mb-3 target-shortcuts" data-target-select="quickTargetArea">
+                            <button class="suggestion-chip" type="button" data-value="SHOULDERS" th:text="#{recommend.quick.shoulders}">Shoulders</button>
+                            <button class="suggestion-chip" type="button" data-value="LOWER_BACK" th:text="#{recommend.quick.lowerBack}">Lower back</button>
+                            <button class="suggestion-chip" type="button" data-value="ABS" th:text="#{recommend.quick.abs}">Abs</button>
+                            <button class="suggestion-chip" type="button" data-value="KNEES" th:text="#{recommend.quick.knees}">Knees</button>
+                            <button class="suggestion-chip" type="button" data-value="GLUTES" th:text="#{recommend.quick.glutes}">Glutes</button>
+                        </div>
+                        <div class="builder-step mt-4">
+                            <div class="builder-step-number">3</div>
+                            <div>
+                                <h5 th:text="#{recommend.step.safety}">Set safety boundary</h5>
+                                <p class="text-muted small mb-3" th:text="#{recommend.step.safetyHelp}">FitMate keeps unsafe videos out before ranking results.</p>
+                            </div>
+                        </div>
+                        <select class="form-select mb-3" th:field="*{quickSafety}">
+                            <option value="" th:text="#{recommend.quick.any}">Any</option>
+                            <option value="knee pain low impact" th:text="#{recommend.safety.knee}">Knee sensitive</option>
+                            <option value="back pain back-friendly" th:text="#{recommend.safety.back}">Back sensitive</option>
+                            <option value="shoulder pain recovery mobility" th:text="#{recommend.safety.shoulder}">Shoulder discomfort</option>
+                            <option value="senior gentle low impact" th:text="#{recommend.safety.senior}">Senior gentle</option>
+                        </select>
+                        <div class="builder-step mt-4">
+                            <div class="builder-step-number">4</div>
+                            <div>
+                                <h5 th:text="#{recommend.step.ai}">Add AI notes</h5>
+                                <p class="text-muted small mb-3" th:text="#{recommend.step.aiHelp}">Use this for details that structured filters cannot capture.</p>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -77,7 +173,7 @@
                         </div>
                         <div class="suggestion-list mb-3" data-target-input="requestText">
                             <button class="suggestion-chip" type="button" data-phrase="no equipment" th:text="#{recommend.quick.none}">No equipment</button>
-                            <button class="suggestion-chip" type="button" data-phrase="chair workout" th:text="#{recommend.quick.chair}">Chair workout</button>
+                            <button class="suggestion-chip" type="button" data-phrase="chair-supported seated" th:text="#{recommend.quick.chair}">Seated / chair-supported</button>
                             <button class="suggestion-chip" type="button" data-phrase="low impact" th:text="#{recommend.quick.low}">Low impact</button>
                             <button class="suggestion-chip" type="button" data-phrase="back-friendly" th:text="#{recommend.quick.backFriendly}">Back-friendly</button>
                         </div>
@@ -206,7 +302,13 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="small text-muted mt-3 mb-0"><span th:text="#{recommend.saved}">Saved plan id:</span> <span th:text="${result.planId}"></span></p>
+                        <div class="saved-plan-callout mt-3">
+                            <div>
+                                <span class="eyebrow" th:text="#{recommend.saved}">Saved plan</span>
+                                <p class="mb-0 text-muted" th:text="#{recommend.saved.help}">Open the generated plan as a guided session.</p>
+                            </div>
+                            <a class="btn btn-dark" th:href="@{/plans/{id}(id=${result.planId})}" th:text="#{recommend.startPlan}">Start plan</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -215,6 +317,32 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const syncTargetControls = (input) => {
+            document.querySelectorAll('[data-target-input="quickTargetArea"], [data-target-select="quickTargetArea"]').forEach((container) => {
+                container.querySelectorAll('[data-value]').forEach((button) => {
+                    button.classList.toggle('active', input.value === button.dataset.value);
+                });
+            });
+        };
+
+        const targetInput = document.getElementById('quickTargetArea');
+        if (targetInput) {
+            document.querySelectorAll('[data-target-input="quickTargetArea"] [data-value], [data-target-select="quickTargetArea"] [data-value]').forEach((button) => {
+                const choose = () => {
+                    targetInput.value = targetInput.value === button.dataset.value ? '' : button.dataset.value;
+                    syncTargetControls(targetInput);
+                };
+                button.addEventListener('click', choose);
+                button.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        choose();
+                    }
+                });
+            });
+            syncTargetControls(targetInput);
+        }
+
         document.querySelectorAll('.suggestion-list').forEach((container) => {
             const input = document.getElementById(container.dataset.targetInput);
             if (!input) {

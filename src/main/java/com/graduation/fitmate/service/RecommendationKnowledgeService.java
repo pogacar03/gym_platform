@@ -108,6 +108,10 @@ public class RecommendationKnowledgeService {
         if (parsed.isBackSensitive()) {
             tags.add("BACK_SENSITIVE");
         }
+        if (parsed.isShoulderSensitive()) {
+            tags.add("SHOULDER_SENSITIVE");
+            tags.add("MOBILITY");
+        }
 
         for (WorkoutVideo video : candidates) {
             if (video.getDifficulty() != null) {
@@ -143,6 +147,9 @@ public class RecommendationKnowledgeService {
                 score += 3;
             }
             if ("BACK_SENSITIVE".equals(tag) && parsed.isBackSensitive()) {
+                score += 3;
+            }
+            if ("SHOULDER_SENSITIVE".equals(tag) && parsed.isShoulderSensitive()) {
                 score += 3;
             }
             if ("POSTURE_SITTING".equals(tag) && "SITTING".equalsIgnoreCase(parsed.getPostureType())) {

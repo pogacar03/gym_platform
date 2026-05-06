@@ -91,7 +91,7 @@ public class ImportedVideoTaggingService {
     }
 
     private String inferGoal(String text) {
-        if (containsAny(text, "mobility", "recovery", "stretch")) {
+        if (containsAny(text, "mobility", "recovery", "stretch", "rehab", "pain", "stiff", "frozen shoulder", "rotator cuff")) {
             return "RECOVERY";
         }
         if (containsAny(text, "core", "abs", "stability")) {
@@ -136,7 +136,7 @@ public class ImportedVideoTaggingService {
     }
 
     private String inferTargetArea(String text) {
-        if (containsAny(text, "upper body", "arms", "bicep", "tricep", "shoulder")) {
+        if (containsAny(text, "upper body", "arms", "bicep", "tricep", "shoulder", "rotator cuff", "frozen shoulder")) {
             return "ARMS";
         }
         if (containsAny(text, "chest")) {
@@ -171,7 +171,7 @@ public class ImportedVideoTaggingService {
     }
 
     private String inferImpactLevel(String text) {
-        if (containsAny(text, "low impact", "chair", "gentle", "mobility")) {
+        if (containsAny(text, "low impact", "chair", "gentle", "mobility", "rehab", "pain", "stiff", "frozen shoulder", "rotator cuff")) {
             return "LOW";
         }
         if (containsAny(text, "jump", "hiit", "plyo")) {

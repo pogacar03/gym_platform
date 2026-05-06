@@ -95,6 +95,7 @@
                                     <div th:if="${view.latestPlan != null}">
                                         <p class="fw-semibold mb-1" th:text="${view.latestPlan.title}"></p>
                                         <p class="text-muted mb-3" th:text="${view.latestPlan.summary}"></p>
+                                        <a class="btn btn-dark btn-sm" th:href="@{/plans/{id}(id=${view.latestPlan.id})}" th:text="#{dashboard.plan.open}">Open guided session</a>
                                     </div>
                                     <div th:if="${view.latestPlan == null}">
                                         <p class="text-muted mb-3" th:text="#{dashboard.plan.empty}">You do not have a saved plan yet. Generate a recommendation to build your first guided session.</p>
@@ -117,6 +118,96 @@
                             </div>
                             <div class="suggestion-list mt-3" th:if="${!#lists.isEmpty(view.focusTags)}">
                                 <span class="suggestion-chip" th:each="tag : ${view.focusTags}" th:text="${@ui.label(tag)}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.profileRecs.eyebrow}">For your profile</span>
+                                    <h3 class="mb-1" th:text="#{dashboard.profileRecs.title}">Ready-to-start sessions</h3>
+                                    <p class="text-muted mb-0" th:text="#{dashboard.profileRecs.subtitle}">These videos are ranked from your goal, preferred duration, equipment, target areas and safety notes.</p>
+                                </div>
+                                <a class="btn btn-outline-dark btn-sm" th:href="@{/recommendations}" th:text="#{dashboard.profileRecs.customize}">Customize with AI</a>
+                            </div>
+                            <div class="row g-3" th:if="${!#lists.isEmpty(view.profileRecommendedVideos)}">
+                                <div class="col-md-6" th:each="video : ${view.profileRecommendedVideos}">
+                                    <div class="feature-video-card">
+                                        <img class="feature-video-thumb" th:src="${video.thumbnailUrl}" th:alt="${video.title}">
+                                        <div class="feature-video-body">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                <h5 class="feature-video-title mb-0" th:text="${video.title}"></h5>
+                                                <span class="badge text-bg-secondary" th:text="${video.durationMinutes + ' min'}"></span>
+                                            </div>
+                                            <div class="suggestion-list mb-2">
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.targetGoal)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.targetBodyPart)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.postureType)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.equipmentRequirement)}"></span>
+                                                <span class="suggestion-chip" th:text="${@ui.label(video.impactLevel)}"></span>
+                                            </div>
+                                            <p class="small text-muted mb-3" th:text="${@ui.safeText(video.description, @ui.message('ui.descriptionFallback', 'Description unavailable.'))}"></p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="small text-muted" th:text="${@ui.safeText(video.platformChannel, @ui.message('ui.channelPending', 'Channel pending'))}"></span>
+                                                <a class="btn btn-sm btn-dark" th:href="@{/videos/{id}(id=${video.id})}" th:text="#{dashboard.preview}">Preview</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-muted" th:if="${#lists.isEmpty(view.profileRecommendedVideos)}" th:text="#{dashboard.profileRecs.empty}">Complete your profile to unlock ready-to-start recommendations.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm dashboard-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-end mb-3">
+                                <div>
+                                    <span class="eyebrow" th:text="#{dashboard.analytics.eyebrow}">Training analytics</span>
+                                    <h3 class="mb-1" th:text="#{dashboard.analytics.title}">Progress signals</h3>
+                                    <p class="text-muted mb-0" th:text="${view.trainingInsight}">Complete one guided session and add feedback to unlock better personalization.</p>
+                                </div>
+                            </div>
+                            <div class="analytics-grid">
+                                <div class="analytics-panel">
+                                    <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.trend}">7-day trend</div>
+                                    <div class="trend-bars">
+                                        <div class="trend-bar-item" th:each="point : ${view.sevenDayTrend}">
+                                            <div class="trend-bar-track">
+                                                <div class="trend-bar-fill" th:style="'height:' + ${point.percent} + '%'"></div>
+                                            </div>
+                                            <span th:text="${point.label}">Mon</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="analytics-panel">
+                                    <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.feedback}">Feedback mix</div>
+                                    <div th:if="${!#lists.isEmpty(view.feedbackInsights)}">
+                                        <div class="insight-row" th:each="item : ${view.feedbackInsights}">
+                                            <span th:text="${item.label}">Just right</span>
+                                            <div class="insight-bar"><div th:style="'width:' + ${item.percent} + '%'"></div></div>
+                                            <strong th:text="${item.percent + '%'}">0%</strong>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-0" th:if="${#lists.isEmpty(view.feedbackInsights)}" th:text="#{dashboard.analytics.emptyFeedback}">No feedback yet.</p>
+                                </div>
+                                <div class="analytics-panel">
+                                    <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.muscles}">Muscle coverage</div>
+                                    <div th:if="${!#lists.isEmpty(view.muscleCoverageInsights)}">
+                                        <div class="insight-row" th:each="item : ${view.muscleCoverageInsights}">
+                                            <span th:text="${item.label}">Core</span>
+                                            <div class="insight-bar"><div th:style="'width:' + ${item.percent} + '%'"></div></div>
+                                            <strong th:text="${item.value}">1</strong>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted mb-0" th:if="${#lists.isEmpty(view.muscleCoverageInsights)}" th:text="#{dashboard.analytics.emptyMuscles}">Generate plans to see coverage.</p>
+                                </div>
                             </div>
                         </div>
                     </div>

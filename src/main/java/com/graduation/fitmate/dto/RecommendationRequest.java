@@ -10,4 +10,5 @@ public class RecommendationRequest {
     private String quickEquipment;
     private String quickIntensity;
     private String quickTargetArea;
+    private String quickSafety;
 }

@@ -22,6 +22,8 @@ import com.graduation.fitmate.mapper.RecommendationHistoryMapper;
 import com.graduation.fitmate.mapper.WorkoutLogMapper;
 import com.graduation.fitmate.mapper.WorkoutPlanItemMapper;
 import com.graduation.fitmate.mapper.WorkoutPlanMapper;
+import com.graduation.fitmate.util.BodyAreaMapper;
+import com.graduation.fitmate.util.WorkoutFeedbackParser;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -209,10 +211,11 @@ public class RecommendationService {
 
     private List<WorkoutVideo> fallbackCandidates(ParsedRecommendationRequest parsed) {
         return workoutVideoService.findAllActive().stream()
-                .filter(video -> parsed.getDurationMinutes() == null || video.getDurationMinutes() == null
-                        || video.getDurationMinutes() <= parsed.getDurationMinutes() + 10)
+                .filter(video -> video.getDurationMinutes() != null)
+                .filter(video -> parsed.getDurationMinutes() == null || video.getDurationMinutes() <= parsed.getDurationMinutes() + 10)
                 .filter(video -> !parsed.isKneeSensitive() || !"HIGH".equalsIgnoreCase(video.getImpactLevel()))
                 .filter(video -> !parsed.isBackSensitive() || !"CORE".equalsIgnoreCase(video.getTargetBodyPart()))
+                .filter(video -> !parsed.isShoulderSensitive() || !"HIGH".equalsIgnoreCase(video.getImpactLevel()))
                 .sorted((left, right) -> Integer.compare(scoreVideo(parsed, right, null), scoreVideo(parsed, left, null)))
                 .limit(3)
                 .toList();
@@ -315,10 +318,14 @@ public class RecommendationService {
     }
 
     private boolean matchesSearchConstraints(WorkoutVideo video, ParsedRecommendationRequest parsed, boolean relaxGoal) {
-        if (!relaxGoal && parsed.getGoal() != null && !matches(video.getTargetGoal(), parsed.getGoal())) {
+        if (video.getDurationMinutes() == null) {
             return false;
         }
-        if (parsed.getDurationMinutes() != null
+        if (!relaxGoal && parsed.isExplicitGoal() && parsed.getGoal() != null && !matches(video.getTargetGoal(), parsed.getGoal())) {
+            return false;
+        }
+        if (parsed.isExplicitDuration()
+                && parsed.getDurationMinutes() != null
                 && video.getDurationMinutes() != null
                 && video.getDurationMinutes() > parsed.getDurationMinutes()) {
             return false;
@@ -329,18 +336,25 @@ public class RecommendationService {
         if (parsed.isBackSensitive() && "CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
             return false;
         }
-        if (parsed.getPostureType() != null && !matches(video.getPostureType(), parsed.getPostureType())) {
+        if (parsed.isShoulderSensitive() && "HIGH".equalsIgnoreCase(video.getImpactLevel())) {
             return false;
         }
-        if (parsed.getTargetArea() != null
-                && !matches(video.getTargetBodyPart(), parsed.getTargetArea())
+        if (parsed.isShoulderSensitive() && !isShoulderRelevant(video)) {
+            return false;
+        }
+        if (parsed.isExplicitPosture() && parsed.getPostureType() != null && !matches(video.getPostureType(), parsed.getPostureType())) {
+            return false;
+        }
+        if (parsed.isExplicitTargetArea()
+                && parsed.getTargetArea() != null
+                && !matchesBodyArea(video.getTargetBodyPart(), parsed.getTargetArea())
                 && !"FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
             return false;
         }
-        if (parsed.getImpactLevel() != null && !matches(video.getImpactLevel(), parsed.getImpactLevel())) {
+        if (parsed.isExplicitImpactLevel() && parsed.getImpactLevel() != null && !matches(video.getImpactLevel(), parsed.getImpactLevel())) {
             return false;
         }
-        if (parsed.getEquipment() != null) {
+        if (parsed.isExplicitEquipment() && parsed.getEquipment() != null) {
             if ("NONE".equalsIgnoreCase(parsed.getEquipment()) && "SITTING".equalsIgnoreCase(parsed.getPostureType())) {
                 return matches(video.getEquipmentRequirement(), "NONE")
                         || matches(video.getEquipmentRequirement(), "CHAIR");
@@ -354,14 +368,44 @@ public class RecommendationService {
         return true;
     }
 
+    private boolean isShoulderRelevant(WorkoutVideo video) {
+        String text = Stream.of(video.getTitle(), video.getDescription())
+                .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.joining(" "))
+                .toLowerCase(Locale.ROOT);
+        return containsAny(text,
+                "shoulder",
+                "rotator cuff",
+                "frozen shoulder",
+                "upper body",
+                "arm",
+                "arms",
+                "肩")
+                && containsAny(text,
+                "workout",
+                "exercise",
+                "routine",
+                "follow along",
+                "mobility",
+                "stretch",
+                "physio",
+                "rehab",
+                "training",
+                "strength",
+                "minutes",
+                "minute",
+                " min",
+                "分钟");
+    }
+
     private WorkoutVideoQuery toQuery(ParsedRecommendationRequest parsed, boolean relaxGoal) {
         WorkoutVideoQuery query = new WorkoutVideoQuery();
-        query.setGoal(parsed.getGoal());
-        query.setMaxDurationMinutes(parsed.getDurationMinutes());
-        query.setEquipment(parsed.getEquipment());
-        query.setPostureType(parsed.getPostureType());
-        query.setTargetArea(parsed.getTargetArea());
-        query.setImpactLevel(parsed.getImpactLevel());
+        query.setGoal(parsed.isExplicitGoal() ? parsed.getGoal() : null);
+        query.setMaxDurationMinutes(parsed.isExplicitDuration() ? parsed.getDurationMinutes() : null);
+        query.setEquipment(parsed.isExplicitEquipment() ? parsed.getEquipment() : null);
+        query.setPostureType(parsed.isExplicitPosture() ? parsed.getPostureType() : null);
+        query.setTargetArea(parsed.isExplicitTargetArea() ? parsed.getTargetArea() : null);
+        query.setImpactLevel(parsed.isExplicitImpactLevel() ? parsed.getImpactLevel() : null);
         query.setKneeSensitive(parsed.isKneeSensitive());
         query.setBackSensitive(parsed.isBackSensitive());
         query.setRelaxGoal(relaxGoal);
@@ -465,27 +509,29 @@ public class RecommendationService {
         Locale locale = LocaleContextHolder.getLocale();
         if (isChineseLocale(locale)) {
             return Stream.of(
-                            parsed.getEquipment() == null ? null : "器械：" + localizeLabel(parsed.getEquipment(), locale),
-                            parsed.getPostureType() == null ? null : "姿势：" + localizeLabel(parsed.getPostureType(), locale),
-                            parsed.getTargetArea() == null ? null : "目标部位：" + localizeLabel(parsed.getTargetArea(), locale),
-                            parsed.getImpactLevel() == null ? null : "冲击等级：" + localizeLabel(parsed.getImpactLevel(), locale),
-                            parsed.getGoal() == null ? null : "目标：" + localizeLabel(parsed.getGoal(), locale),
+                            parsed.isExplicitEquipment() && parsed.getEquipment() != null ? "器械：" + localizeLabel(parsed.getEquipment(), locale) : null,
+                            parsed.isExplicitPosture() && parsed.getPostureType() != null ? "姿势：" + localizeLabel(parsed.getPostureType(), locale) : null,
+                            parsed.isExplicitTargetArea() && parsed.getTargetArea() != null ? "目标部位：" + localizeLabel(parsed.getTargetArea(), locale) : null,
+                            parsed.isExplicitImpactLevel() && parsed.getImpactLevel() != null ? "冲击等级：" + localizeLabel(parsed.getImpactLevel(), locale) : null,
+                            parsed.isExplicitGoal() && parsed.getGoal() != null ? "目标：" + localizeLabel(parsed.getGoal(), locale) : null,
                             parsed.isKneeSensitive() ? "膝盖敏感过滤" : null,
                             parsed.isBackSensitive() ? "背部友好过滤" : null,
-                            parsed.getDurationMinutes() == null ? null : "时长 <= " + parsed.getDurationMinutes() + " 分钟"
+                            parsed.isShoulderSensitive() ? "肩部温和训练过滤" : null,
+                            parsed.isExplicitDuration() && parsed.getDurationMinutes() != null ? "时长 <= " + parsed.getDurationMinutes() + " 分钟" : null
                     )
                     .filter(value -> value != null && !value.isBlank())
                     .toList();
         }
         return Stream.of(
-                        parsed.getEquipment() == null ? null : "Equipment: " + humanizeEnum(parsed.getEquipment()),
-                        parsed.getPostureType() == null ? null : "Posture: " + humanizeEnum(parsed.getPostureType()),
-                        parsed.getTargetArea() == null ? null : "Target area: " + humanizeEnum(parsed.getTargetArea()),
-                        parsed.getImpactLevel() == null ? null : "Impact: " + humanizeEnum(parsed.getImpactLevel()),
-                        parsed.getGoal() == null ? null : "Goal: " + humanizeGoal(parsed.getGoal()),
+                        parsed.isExplicitEquipment() && parsed.getEquipment() != null ? "Equipment: " + humanizeEnum(parsed.getEquipment()) : null,
+                        parsed.isExplicitPosture() && parsed.getPostureType() != null ? "Posture: " + humanizeEnum(parsed.getPostureType()) : null,
+                        parsed.isExplicitTargetArea() && parsed.getTargetArea() != null ? "Target area: " + humanizeEnum(parsed.getTargetArea()) : null,
+                        parsed.isExplicitImpactLevel() && parsed.getImpactLevel() != null ? "Impact: " + humanizeEnum(parsed.getImpactLevel()) : null,
+                        parsed.isExplicitGoal() && parsed.getGoal() != null ? "Goal: " + humanizeGoal(parsed.getGoal()) : null,
                         parsed.isKneeSensitive() ? "Knee-sensitive filter" : null,
                         parsed.isBackSensitive() ? "Back-friendly filter" : null,
-                        parsed.getDurationMinutes() == null ? null : "Duration <= " + parsed.getDurationMinutes() + " min"
+                        parsed.isShoulderSensitive() ? "Shoulder-friendly filter" : null,
+                        parsed.isExplicitDuration() && parsed.getDurationMinutes() != null ? "Duration <= " + parsed.getDurationMinutes() + " min" : null
                 )
                 .filter(value -> value != null && !value.isBlank())
                 .toList();
@@ -549,6 +595,11 @@ public class RecommendationService {
                     ? "已降低核心高负荷动作优先级；保持动作可控，不要追求幅度。"
                     : "High-load core work was de-prioritized; keep movements controlled instead of chasing range.");
         }
+        if (parsed.isShoulderSensitive()) {
+            cautions.add(isChineseLocale(locale)
+                    ? "肩部不适时只做无痛范围内的活动度和轻强度训练，避免推举、爆发甩臂和负重过大。"
+                    : "For shoulder discomfort, stay in a pain-free range and avoid heavy pressing, explosive swings, or high load.");
+        }
         if ("SITTING".equalsIgnoreCase(parsed.getPostureType())) {
             cautions.add(isChineseLocale(locale)
                     ? "坐姿训练也需要保持脚掌稳定、躯干直立，避免含胸和扭转过快。"
@@ -586,6 +637,11 @@ public class RecommendationService {
             reasons.add(isChineseLocale(locale)
                     ? "过滤规则：背部敏感时，降低高核心负荷视频的优先级。"
                     : "Filter rule: high core-load videos are de-prioritized for back-sensitive requests.");
+        }
+        if (parsed.isShoulderSensitive()) {
+            reasons.add(isChineseLocale(locale)
+                    ? "过滤规则：肩部不适时，排除高冲击内容并优先选择上肢活动度或恢复训练。"
+                    : "Filter rule: shoulder-sensitive requests exclude high-impact content and favor upper-body mobility or recovery.");
         }
         if (parsed.getEquipment() != null) {
             reasons.add(isChineseLocale(locale)
@@ -638,7 +694,7 @@ public class RecommendationService {
                     if (matches(video.getPostureType(), parsed.getPostureType())) {
                         reasons.add(isChineseLocale(locale) ? "姿势符合你的请求" : "Posture matches your request");
                     }
-                    if (matches(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+                    if (matchesBodyArea(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
                         reasons.add(isChineseLocale(locale) ? "目标部位基本对齐" : "Body area is aligned");
                     }
                     if (matches(video.getTargetGoal(), parsed.getGoal())) {
@@ -700,7 +756,7 @@ public class RecommendationService {
                             scoreVideo(parsed, video, null) / 20.0d
                     ));
                     if (lookupResult.isSqlFallbackUsed()) {
-                        lines.add(isChineseLocale(locale) ? "当前结果来自 SQL 回退路径" : "This result came from the SQL fallback path");
+                        lines.add(isChineseLocale(locale) ? "安全规则匹配" : "Safe rule-based match");
                     }
                     return lines;
                 },
@@ -723,7 +779,7 @@ public class RecommendationService {
         if (matches(video.getImpactLevel(), parsed.getImpactLevel())) {
             score += 3;
         }
-        if (matches(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+        if (matchesBodyArea(video.getTargetBodyPart(), parsed.getTargetArea()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
             score += 2;
         }
         if (parsed.isKneeSensitive() && !"HIGH".equalsIgnoreCase(video.getImpactLevel())) {
@@ -731,6 +787,26 @@ public class RecommendationService {
         }
         if (parsed.isBackSensitive() && !"CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
             score += 2;
+        }
+        if (parsed.isShoulderSensitive()) {
+            if ("ARMS".equalsIgnoreCase(video.getTargetBodyPart()) || "FULL_BODY".equalsIgnoreCase(video.getTargetBodyPart())) {
+                score += 4;
+            }
+            if ("RECOVERY".equalsIgnoreCase(video.getTargetGoal())) {
+                score += 3;
+            }
+            if (!"HIGH".equalsIgnoreCase(video.getImpactLevel())) {
+                score += 2;
+            }
+            if ("NONE".equalsIgnoreCase(video.getEquipmentRequirement())) {
+                score += 3;
+            }
+            if ("BANDS".equalsIgnoreCase(video.getEquipmentRequirement()) || "CHAIR".equalsIgnoreCase(video.getEquipmentRequirement())) {
+                score += 1;
+            }
+            if ("DUMBBELL".equalsIgnoreCase(video.getEquipmentRequirement())) {
+                score -= 3;
+            }
         }
         score += feedbackBoost(video, latestFeedbackCode, parsed);
         return score;
@@ -775,10 +851,7 @@ public class RecommendationService {
                 .eq(WorkoutLog::getStatus, "COMPLETED")
                 .orderByDesc(WorkoutLog::getCompletedAt)
                 .last("limit 1"));
-        if (latestLog == null || latestLog.getFeedbackNote() == null || !latestLog.getFeedbackNote().startsWith("USER_FEEDBACK:")) {
-            return null;
-        }
-        return latestLog.getFeedbackNote().substring("USER_FEEDBACK:".length());
+        return WorkoutFeedbackParser.code(latestLog.getFeedbackNote());
     }
 
     private String applyRecentFeedbackAdjustment(ParsedRecommendationRequest parsed, String latestFeedbackCode) {
@@ -823,6 +896,19 @@ public class RecommendationService {
         return value.equalsIgnoreCase(expected);
     }
 
+    private boolean matchesBodyArea(String value, String expected) {
+        return BodyAreaMapper.sameArea(value, expected);
+    }
+
+    private boolean containsAny(String text, String... candidates) {
+        for (String candidate : candidates) {
+            if (text.contains(candidate.toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String humanizeGoal(String goal) {
         return switch (goal) {
             case "WEIGHT_LOSS" -> "weight loss";
@@ -856,6 +942,7 @@ public class RecommendationService {
         return switch (value) {
             case "KNEE_SENSITIVE" -> isChineseLocale(locale) ? "膝盖敏感" : "Knee sensitive";
             case "BACK_SENSITIVE" -> isChineseLocale(locale) ? "背部敏感" : "Back sensitive";
+            case "SHOULDER_SENSITIVE" -> isChineseLocale(locale) ? "肩部敏感" : "Shoulder sensitive";
             case "SITTING_REQUIRED" -> isChineseLocale(locale) ? "需要坐姿/椅子训练" : "Sitting required";
             default -> value;
         };

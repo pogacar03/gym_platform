@@ -29,6 +29,7 @@
             updated_at
         FROM workout_video
         WHERE active = TRUE
+          AND duration_minutes IS NOT NULL
         <if test="query.relaxGoal == false and query.goal != null and query.goal != ''">
             AND target_goal = #{query.goal}
         </if>

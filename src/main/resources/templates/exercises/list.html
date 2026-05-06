@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{exercises.pageTitle})}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container page-shell" th:with="view=${library}">
+    <div class="page-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{exercises.eyebrow}">Exercise library</span>
+            <h1 class="mb-2" th:text="#{exercises.title}">Standardized exercise library</h1>
+            <p class="text-muted mb-0" th:text="#{exercises.subtitle}">Exercises are derived from the curated video library and normalized by muscle, equipment, type and risk level.</p>
+        </div>
+    </div>
+    <div class="mini-stats mb-4">
+        <div class="mini-stat">
+            <span th:text="#{exercises.total}">Exercises</span>
+            <strong th:text="${view.totalExercises}">0</strong>
+        </div>
+        <div class="mini-stat">
+            <span th:text="#{exercises.lowRisk}">Low-risk</span>
+            <strong th:text="${view.lowRiskCount}">0</strong>
+        </div>
+        <div class="mini-stat">
+            <span th:text="#{exercises.noEquipment}">No equipment</span>
+            <strong th:text="${view.noEquipmentCount}">0</strong>
+        </div>
+    </div>
+    <div class="exercise-grid">
+        <div class="exercise-card" th:each="exercise : ${view.exercises}">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <h2 class="h6 mb-2" th:text="${exercise.name}">Exercise</h2>
+                <span class="badge text-bg-secondary" th:text="${@ui.label(exercise.riskLevel)}">Low</span>
+            </div>
+            <p class="small text-muted" th:text="${@ui.safeText(exercise.description, @ui.message('ui.descriptionFallback', 'Description unavailable.'))}"></p>
+            <div class="suggestion-list">
+                <span class="suggestion-chip" th:text="${@ui.label(exercise.primaryMuscle)}"></span>
+                <span class="suggestion-chip" th:text="${@ui.label(exercise.equipment)}"></span>
+                <span class="suggestion-chip" th:text="${@ui.label(exercise.exerciseType)}"></span>
+                <span class="suggestion-chip" th:text="${@ui.label(exercise.mechanicsType)}"></span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

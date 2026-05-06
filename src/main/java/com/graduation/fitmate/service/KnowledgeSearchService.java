@@ -193,7 +193,8 @@ public class KnowledgeSearchService {
                                 parsed.getTargetArea(),
                                 parsed.getImpactLevel(),
                                 parsed.isKneeSensitive() ? "knee sensitive knee pain low impact" : null,
-                                parsed.isBackSensitive() ? "back friendly back pain spine safe" : null
+                                parsed.isBackSensitive() ? "back friendly back pain spine safe" : null,
+                                parsed.isShoulderSensitive() ? "肩部不适 肩周炎 肩痛 shoulder pain frozen shoulder rotator cuff mobility recovery" : null
                         ),
                         candidates.stream().flatMap(video -> Stream.of(video.getTitle(), video.getDescription(), video.getExtraTags()))
                 )

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{plan.pageTitle})}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container page-shell" th:with="view=${planSession}">
+    <div class="page-hero plan-session-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{plan.eyebrow}">Guided session</span>
+            <h1 class="mb-2" th:text="${view.plan.title}">Current plan</h1>
+            <p class="text-muted mb-0" th:text="${view.plan.summary}">Plan summary</p>
+        </div>
+        <div class="mini-stats plan-session-stats">
+            <div class="mini-stat">
+                <span th:text="#{plan.totalTime}">Total time</span>
+                <strong th:text="${view.totalMinutes + ' min'}">0 min</strong>
+            </div>
+            <div class="mini-stat">
+                <span th:text="#{plan.items}">Items</span>
+                <strong th:text="${view.items.size()}">0</strong>
+            </div>
+            <div class="mini-stat">
+                <span th:text="#{plan.status}">Status</span>
+                <strong th:text="${view.completedToday ? #messages.msg('plan.doneToday') : #messages.msg('plan.ready')}">Ready</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${completed}" th:text="#{plan.completedMessage}">Session completed.</div>
+
+    <div class="plan-session-layout">
+        <div class="plan-track">
+            <div class="plan-step-card" th:each="entry, stat : ${view.items}">
+                <div class="plan-step-index" th:text="${stat.count}">1</div>
+                <img class="plan-step-thumb" th:src="${entry.video.thumbnailUrl}" th:alt="${entry.video.title}">
+                <div class="plan-step-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                        <div>
+                            <h2 class="h5 mb-1" th:text="${entry.video.title}">Workout title</h2>
+                            <div class="small text-muted" th:text="${entry.trainingTarget}">Training target</div>
+                        </div>
+                        <span class="badge text-bg-secondary" th:text="${entry.video.durationMinutes + ' min'}">10 min</span>
+                    </div>
+                    <p class="text-muted mt-3 mb-3" th:text="${@ui.safeText(entry.video.description, @ui.message('ui.descriptionFallback', 'Description unavailable.'))}"></p>
+                    <div class="session-prescription">
+                        <div>
+                            <span th:text="#{plan.prescription}">Prescription</span>
+                            <strong th:text="${entry.item.repsOrDuration}">Follow-along</strong>
+                        </div>
+                        <div>
+                            <span th:text="#{plan.sets}">Sets</span>
+                            <strong th:text="${entry.item.setsCount}">1</strong>
+                        </div>
+                        <div>
+                            <span th:text="#{plan.focus}">Focus</span>
+                            <strong th:text="${entry.focusLabel}">Full body</strong>
+                        </div>
+                    </div>
+                    <div class="video-action-row mt-3">
+                        <span class="small text-muted" th:text="${@ui.safeText(entry.video.platformChannel, @ui.message('ui.channelPending', 'Unknown channel'))}">Channel</span>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-dark" th:href="@{/videos/{id}(id=${entry.video.id})}" th:text="#{plan.preview}">Preview</a>
+                            <a class="btn btn-sm btn-dark" target="_blank" th:href="${entry.video.videoUrl}" th:text="#{plan.open}">Open source</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="plan-session-panel">
+            <div class="card border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <span class="eyebrow" th:text="#{plan.finish.eyebrow}">Finish session</span>
+                    <h2 class="h4 mb-2" th:text="#{plan.finish.title}">Log your workout</h2>
+                    <p class="text-muted" th:text="#{plan.finish.help}">Record how this plan felt so future recommendations can adjust intensity.</p>
+                    <form th:action="@{/plans/{id}/complete(id=${view.plan.id})}" method="post">
+                        <div class="feedback-choice-grid mb-3">
+                            <label class="feedback-choice">
+                                <input type="radio" name="feedbackCode" value="TOO_EASY">
+                                <span th:text="#{dashboard.feedback.easy}">Too easy</span>
+                            </label>
+                            <label class="feedback-choice">
+                                <input type="radio" name="feedbackCode" value="JUST_RIGHT" checked>
+                                <span th:text="#{dashboard.feedback.justRight}">Just right</span>
+                            </label>
+                            <label class="feedback-choice">
+                                <input type="radio" name="feedbackCode" value="TOO_HARD">
+                                <span th:text="#{dashboard.feedback.hard}">Too hard</span>
+                            </label>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label" for="actualMinutes" th:text="#{plan.actualMinutes}">Actual minutes</label>
+                                <input class="form-control" id="actualMinutes" name="actualMinutes" type="number" min="0" th:value="${view.totalMinutes}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="skippedItems" th:text="#{plan.skippedItems}">Skipped items</label>
+                                <input class="form-control" id="skippedItems" name="skippedItems" type="number" min="0" value="0">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="discomfortArea" th:text="#{plan.discomfortArea}">Discomfort area</label>
+                                <select class="form-select" id="discomfortArea" name="discomfortArea">
+                                    <option value="" th:text="#{plan.discomfort.none}">None</option>
+                                    <option value="KNEES" th:text="#{label.knees}">Knees</option>
+                                    <option value="LOWER_BACK" th:text="#{label.lower_back}">Lower back</option>
+                                    <option value="SHOULDERS" th:text="#{label.shoulders}">Shoulders</option>
+                                    <option value="WRISTS" th:text="#{plan.discomfort.wrists}">Wrists</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="completionNote" th:text="#{plan.note}">Session note</label>
+                                <textarea class="form-control" id="completionNote" name="note" rows="3" th:placeholder="#{plan.note.placeholder}"></textarea>
+                            </div>
+                        </div>
+                        <button class="btn btn-dark w-100" type="submit" th:text="#{plan.finish.submit}">Mark session complete</button>
+                    </form>
+                    <div class="small text-muted mt-3" th:if="${view.latestCompletedAt != null}">
+                        <span th:text="#{plan.latest}">Latest completion</span>:
+                        <strong th:text="${@ui.formatDateTime(view.latestCompletedAt)}"></strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+</body>
+</html>

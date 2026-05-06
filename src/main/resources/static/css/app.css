@@ -745,6 +745,49 @@ a {
     top: 6.25rem;
 }
 
+.builder-step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.85rem;
+    align-items: start;
+    margin-bottom: 0.75rem;
+}
+
+.builder-step-number {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+    box-shadow: 0 10px 22px rgba(28, 88, 70, 0.16);
+}
+
+.builder-step h5 {
+    margin-bottom: 0.12rem;
+    font-weight: 850;
+}
+
+.recommendation-body-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recommendation-body-map .body-map-card {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(73, 60, 43, 0.08);
+}
+
+.recommendation-body-map .body-map {
+    height: 18rem;
+}
+
+.target-shortcuts {
+    padding-bottom: 0.25rem;
+}
+
 .suggestion-list,
 .chip-group,
 .result-meta {
@@ -991,6 +1034,14 @@ a {
     min-height: auto;
 }
 
+.anatomy-selector {
+    background:
+        radial-gradient(circle at 12% 12%, rgba(242, 142, 74, 0.14), transparent 26%),
+        radial-gradient(circle at 88% 8%, rgba(15, 118, 110, 0.16), transparent 28%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(244, 241, 232, 0.88));
+    border-color: rgba(46, 83, 70, 0.12);
+}
+
 .body-map-layout {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -998,8 +1049,14 @@ a {
 }
 
 .body-map-card {
-    border-radius: 22px;
-    padding: 0.95rem;
+    position: relative;
+    border-radius: 28px;
+    padding: 0.65rem;
+    background:
+        linear-gradient(180deg, rgba(15, 28, 27, 0.96), rgba(24, 47, 42, 0.92)),
+        radial-gradient(circle at 50% 8%, rgba(167, 243, 208, 0.18), transparent 30%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 40px rgba(25, 42, 34, 0.12);
 }
 
 .body-map-title {
@@ -1007,52 +1064,216 @@ a {
     margin-bottom: 0.5rem;
 }
 
+.floating-map-title {
+    position: absolute;
+    z-index: 2;
+    top: 0.85rem;
+    left: 0.85rem;
+    margin: 0;
+    padding: 0.32rem 0.68rem;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .body-map {
     position: relative;
     height: 22rem;
-    border-radius: 20px;
+    border-radius: 24px;
     background:
-        radial-gradient(circle at top, rgba(30, 106, 82, 0.08), transparent 35%),
-        linear-gradient(180deg, #ffffff, #f4f2ec);
+        radial-gradient(ellipse at 50% 12%, rgba(255, 255, 255, 0.16), transparent 24%),
+        radial-gradient(ellipse at 50% 46%, rgba(20, 184, 166, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(7, 18, 17, 0.08), rgba(255, 255, 255, 0.02));
     overflow: hidden;
 }
 
+.body-map::before,
+.body-map::after {
+    content: "";
+    position: absolute;
+    inset: 1.1rem;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.body-map::before {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.body-map::after {
+    background: linear-gradient(90deg, transparent 49.6%, rgba(255, 255, 255, 0.08) 50%, transparent 50.4%);
+}
+
 .body-figure {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
     display: block;
+    filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.22));
 }
 
 .body-base {
-    fill: #d6cdc2;
-    opacity: 0.94;
+    fill: rgba(229, 218, 204, 0.82);
+    stroke: rgba(255, 255, 255, 0.18);
+    stroke-width: 1.1;
 }
 
 .muscle-layer {
     fill: #a7f3d0;
 }
 
+.detailed-muscle-layer {
+    isolation: isolate;
+}
+
 .muscle-zone {
-    fill: rgba(30, 106, 82, 0.4);
-    stroke: rgba(34, 29, 24, 0.16);
-    stroke-width: 2;
+    fill: rgba(20, 184, 166, 0.48);
+    stroke: rgba(255, 255, 255, 0.42);
+    stroke-width: 1.45;
     cursor: pointer;
-    transition: fill 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+    vector-effect: non-scaling-stroke;
+    transition: fill 0.18s ease, transform 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
+}
+
+.detailed-muscle-layer .muscle-zone {
+    opacity: 0.92;
+    mix-blend-mode: screen;
 }
 
 .muscle-zone:hover,
 .muscle-zone:focus-visible {
-    fill: rgba(30, 106, 82, 0.7);
+    fill: rgba(255, 214, 120, 0.9);
+    filter: drop-shadow(0 0 12px rgba(255, 214, 120, 0.5));
     outline: none;
 }
 
 .muscle-zone.active {
-    fill: var(--brand);
-    stroke: var(--brand-strong);
+    fill: #f97316;
+    stroke: #fff7ed;
+    filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.64));
+    opacity: 1;
 }
 
-.muscle-zone[data-value="LEGS"] {
-    fill: rgba(220, 139, 66, 0.34);
+.muscle-zone[data-value="SHOULDERS"],
+.muscle-zone[data-value="shoulders"],
+.muscle-zone[data-value="BICEPS"],
+.muscle-zone[data-value="biceps"],
+.muscle-zone[data-value="TRICEPS"],
+.muscle-zone[data-value="triceps"],
+.muscle-zone[data-value="FOREARMS"],
+.muscle-zone[data-value="forearms"],
+.muscle-zone[data-value="ARMS"],
+.muscle-zone[data-value="arms"] {
+    fill: rgba(251, 146, 60, 0.5);
+}
+
+.muscle-zone[data-value="CHEST"],
+.muscle-zone[data-value="chest"] {
+    fill: rgba(248, 113, 113, 0.54);
+}
+
+.muscle-zone[data-value="ABS"],
+.muscle-zone[data-value="abs"],
+.muscle-zone[data-value="OBLIQUES"],
+.muscle-zone[data-value="obliques"],
+.muscle-zone[data-value="CORE"],
+.muscle-zone[data-value="core"] {
+    fill: rgba(45, 212, 191, 0.5);
+}
+
+.muscle-zone[data-value="TRAPS"],
+.muscle-zone[data-value="traps"],
+.muscle-zone[data-value="LATS"],
+.muscle-zone[data-value="lats"],
+.muscle-zone[data-value="UPPER_BACK"],
+.muscle-zone[data-value="upper_back"],
+.muscle-zone[data-value="LOWER_BACK"],
+.muscle-zone[data-value="lower_back"],
+.muscle-zone[data-value="BACK"],
+.muscle-zone[data-value="back"] {
+    fill: rgba(74, 222, 128, 0.5);
+}
+
+.muscle-zone[data-value="GLUTES"],
+.muscle-zone[data-value="glutes"] {
+    fill: rgba(244, 114, 182, 0.5);
+}
+
+.muscle-zone[data-value="QUADS"],
+.muscle-zone[data-value="quads"],
+.muscle-zone[data-value="HAMSTRINGS"],
+.muscle-zone[data-value="hamstrings"],
+.muscle-zone[data-value="CALVES"],
+.muscle-zone[data-value="calves"],
+.muscle-zone[data-value="KNEES"],
+.muscle-zone[data-value="knees"],
+.muscle-zone[data-value="LEGS"],
+.muscle-zone[data-value="legs"] {
+    fill: rgba(96, 165, 250, 0.48);
+}
+
+.muscle-abs,
+.muscle-spine {
+    stroke-width: 1.15;
+}
+
+.muscle-oblique,
+.muscle-lat,
+.muscle-hamstring,
+.muscle-calf {
+    opacity: 0.86;
+}
+
+.muscle-deltoid,
+.muscle-pec,
+.muscle-glute,
+.muscle-quad {
+    opacity: 0.96;
+}
+
+.selected-muscle-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    padding: 0.85rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(82, 65, 46, 0.1);
+}
+
+.selected-muscle-label {
+    font-weight: 850;
+    color: #2f2924;
+}
+
+.selected-muscle-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.selected-muscle-chip,
+.selected-muscle-empty {
+    border-radius: 999px;
+    padding: 0.38rem 0.7rem;
+    font-size: 0.84rem;
+}
+
+.selected-muscle-chip {
+    background: #102d27;
+    color: #fff;
+}
+
+.selected-muscle-empty {
+    background: rgba(97, 79, 54, 0.08);
+    color: var(--muted);
 }
 
 .library-shell .card,
@@ -1161,6 +1382,191 @@ a {
     margin-top: auto;
 }
 
+.saved-plan-callout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(97, 79, 54, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.plan-session-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.plan-session-stats {
+    align-self: stretch;
+}
+
+.plan-session-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.plan-track {
+    display: grid;
+    gap: 1rem;
+}
+
+.plan-step-card {
+    display: grid;
+    grid-template-columns: 3rem 12rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(97, 79, 54, 0.1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 14px 38px rgba(64, 49, 31, 0.06);
+}
+
+.plan-step-index {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--text);
+    color: white;
+    font-weight: 800;
+}
+
+.plan-step-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(97, 79, 54, 0.1);
+}
+
+.plan-step-body {
+    min-width: 0;
+}
+
+.session-prescription {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.session-prescription div,
+.feedback-choice {
+    padding: 0.8rem;
+    border: 1px solid rgba(97, 79, 54, 0.1);
+    border-radius: 12px;
+    background: rgba(246, 240, 231, 0.55);
+}
+
+.session-prescription span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.session-prescription strong {
+    display: block;
+    margin-top: 0.15rem;
+}
+
+.plan-session-panel {
+    position: sticky;
+    top: 1rem;
+}
+
+.feedback-choice-grid {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.feedback-choice {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.analytics-panel {
+    padding: 1rem;
+    border: 1px solid rgba(97, 79, 54, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.trend-bars {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.45rem;
+    align-items: end;
+}
+
+.trend-bar-item {
+    display: grid;
+    gap: 0.35rem;
+    justify-items: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.trend-bar-track {
+    width: 100%;
+    height: 5.5rem;
+    display: flex;
+    align-items: end;
+    border-radius: 999px;
+    background: rgba(97, 79, 54, 0.08);
+    overflow: hidden;
+}
+
+.trend-bar-fill {
+    width: 100%;
+    min-height: 0.35rem;
+    border-radius: 999px;
+    background: var(--text);
+}
+
+.insight-row {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 0.8fr) minmax(0, 1fr) 3rem;
+    gap: 0.65rem;
+    align-items: center;
+    margin-bottom: 0.7rem;
+    font-size: 0.85rem;
+}
+
+.insight-row:last-child {
+    margin-bottom: 0;
+}
+
+.insight-bar {
+    height: 0.55rem;
+    border-radius: 999px;
+    background: rgba(97, 79, 54, 0.08);
+    overflow: hidden;
+}
+
+.insight-bar div {
+    height: 100%;
+    border-radius: inherit;
+    background: #0f766e;
+}
+
 .video-cover {
     width: 100%;
 }
@@ -1230,11 +1636,17 @@ table.table th {
 @media (max-width: 1200px) {
     .landing-grid,
     .recommendation-layout,
-    .dashboard-hero {
+    .dashboard-hero,
+    .plan-session-hero,
+    .plan-session-layout {
         grid-template-columns: 1fr;
     }
 
     .request-builder {
+        position: static;
+    }
+
+    .plan-session-panel {
         position: static;
     }
 
@@ -1286,7 +1698,8 @@ table.table th {
     }
 
     .mini-stats,
-    .hero-stat-grid {
+    .hero-stat-grid,
+    .analytics-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1303,6 +1716,19 @@ table.table th {
     }
 
     .progress-card-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .plan-step-card {
+        grid-template-columns: 2.5rem minmax(0, 1fr);
+    }
+
+    .plan-step-thumb,
+    .plan-step-body {
+        grid-column: 2;
+    }
+
+    .session-prescription {
         grid-template-columns: 1fr;
     }
 }
@@ -1339,14 +1765,21 @@ table.table th {
 
     .hero-actions,
     .dashboard-hero-actions,
-    .video-action-row {
+    .video-action-row,
+    .saved-plan-callout {
         width: 100%;
     }
 
     .hero-actions .btn,
     .dashboard-hero-actions .btn,
-    .video-action-row .btn {
+    .video-action-row .btn,
+    .saved-plan-callout .btn {
         width: 100%;
+    }
+
+    .saved-plan-callout {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .progress-ring {

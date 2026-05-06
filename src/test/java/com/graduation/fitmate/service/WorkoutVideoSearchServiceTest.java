@@ -49,7 +49,7 @@ class WorkoutVideoSearchServiceTest {
         parsed.setTargetArea("BACK");
         parsed.setPostureType("SITTING");
 
-        when(searchGateway.lexicalSearch(eq("workout_video_search"), eq(8), any(), eq("seated back workout")))
+        when(searchGateway.lexicalSearch(eq("workout_video_search"), eq(8), any(), eq("seated back workout SITTING BACK")))
                 .thenReturn(Map.of(42L, 3.2d));
         when(searchGateway.vectorSearch(eq("workout_video_search"), eq(8), eq(24), any(), any()))
                 .thenThrow(new IOException("vector search unavailable"));
@@ -89,7 +89,7 @@ class WorkoutVideoSearchServiceTest {
         ParsedRecommendationRequest parsed = new ParsedRecommendationRequest();
         parsed.setTargetArea("BACK");
 
-        when(searchGateway.lexicalSearch(eq("workout_video_search"), eq(8), any(), eq("back mobility")))
+        when(searchGateway.lexicalSearch(eq("workout_video_search"), eq(8), any(), eq("back mobility BACK")))
                 .thenReturn(Map.of(10L, 4.0d, 20L, 2.0d));
         when(searchGateway.vectorSearch(eq("workout_video_search"), eq(8), eq(24), any(), any()))
                 .thenReturn(Map.of(20L, 0.9d, 30L, 0.8d));

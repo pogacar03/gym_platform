@@ -31,8 +31,13 @@ public class DashboardView {
     private String latestFeedbackCode;
     private String latestFeedbackLabel;
     private LocalDateTime latestFeedbackRecordedAt;
+    private String trainingInsight;
     private final List<String> focusTags = new ArrayList<>();
     private final List<DashboardDayStatus> weeklyRhythm = new ArrayList<>();
+    private final List<DashboardInsight> sevenDayTrend = new ArrayList<>();
+    private final List<DashboardInsight> feedbackInsights = new ArrayList<>();
+    private final List<DashboardInsight> muscleCoverageInsights = new ArrayList<>();
     private final List<WorkoutLog> recentLogs = new ArrayList<>();
+    private final List<WorkoutVideo> profileRecommendedVideos = new ArrayList<>();
     private final List<WorkoutVideo> featuredVideos = new ArrayList<>();
 }

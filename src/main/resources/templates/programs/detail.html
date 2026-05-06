@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{program.pageTitle})}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container page-shell" th:with="view=${programView}">
+    <div class="page-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{program.eyebrow}">4-week program</span>
+            <h1 class="mb-2" th:text="${view == null ? #messages.msg('program.empty.title') : view.program.title}">4-week personalized training plan</h1>
+            <p class="text-muted mb-0" th:text="${view == null ? #messages.msg('program.empty.subtitle') : view.program.summary}">Generate a progressive plan.</p>
+        </div>
+        <form th:action="@{/programs/generate}" method="post">
+            <button class="btn btn-dark btn-lg" type="submit" th:text="#{program.generate}">Generate 4-week plan</button>
+        </form>
+    </div>
+
+    <div class="alert alert-success" th:if="${generated}" th:text="#{program.generatedMessage}">Program generated.</div>
+
+    <div class="text-muted" th:if="${view == null}" th:text="#{program.empty.help}">No program yet. Generate one from your profile.</div>
+
+    <div class="program-timeline" th:if="${view != null}">
+        <section class="program-week" th:each="week : ${view.weeks}">
+            <div class="program-week-header">
+                <div>
+                    <span class="eyebrow" th:text="${'Week ' + week.week.weekNumber}">Week 1</span>
+                    <h2 class="h4 mb-1" th:text="${week.week.title}">Foundation week</h2>
+                    <p class="text-muted mb-0" th:text="${week.week.notes}">Notes</p>
+                </div>
+                <span class="badge text-bg-secondary" th:text="${week.week.focus}">Focus</span>
+            </div>
+            <div class="program-session-grid">
+                <article class="program-session-card" th:each="session : ${week.sessions}">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <h3 class="h6 mb-0" th:text="${session.session.title}">Session</h3>
+                        <span class="badge text-bg-light" th:text="${session.session.estimatedMinutes + ' min'}">20 min</span>
+                    </div>
+                    <div class="small text-muted mb-3" th:text="${@ui.label(session.session.intensity)}">Low</div>
+                    <div class="program-item-list">
+                        <div class="program-item" th:each="item : ${session.items}">
+                            <strong th:text="${item.exercise != null ? item.exercise.name : item.video.title}">Exercise</strong>
+                            <span th:text="${item.item.repsOrDuration + ' · rest ' + item.item.restSeconds + 's'}">10 min</span>
+                            <p th:text="${item.item.instruction}">Instruction</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</div>
+</body>
+</html>

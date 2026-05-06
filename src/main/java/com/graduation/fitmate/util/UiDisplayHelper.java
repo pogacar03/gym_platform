@@ -5,10 +5,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 @Component("ui")
 public class UiDisplayHelper {
@@ -85,12 +86,18 @@ public class UiDisplayHelper {
         if (!note.startsWith("USER_FEEDBACK:")) {
             return note;
         }
-        String code = note.substring("USER_FEEDBACK:".length());
-        return switch (code) {
+        String code = WorkoutFeedbackParser.code(note);
+        String label = switch (code) {
             case "TOO_EASY" -> message("dashboard.feedback.timeline.easy", "Feedback: the last plan felt too easy");
             case "JUST_RIGHT" -> message("dashboard.feedback.timeline.justRight", "Feedback: the last plan felt just right");
             case "TOO_HARD" -> message("dashboard.feedback.timeline.hard", "Feedback: the last plan felt too hard");
             default -> note;
         };
+        Map<String, String> metadata = WorkoutFeedbackParser.metadata(note);
+        String discomfort = metadata.get("discomfort");
+        if (discomfort != null && !discomfort.isBlank()) {
+            return label + " · " + message("dashboard.feedback.discomfort", "Discomfort") + ": " + label(discomfort);
+        }
+        return label;
     }
 }

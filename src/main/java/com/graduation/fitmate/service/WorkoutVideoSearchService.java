@@ -8,6 +8,7 @@ import com.graduation.fitmate.config.AppSearchProperties;
 import com.graduation.fitmate.dto.ParsedRecommendationRequest;
 import com.graduation.fitmate.dto.SearchCandidateScore;
 import com.graduation.fitmate.dto.SearchRetrievalResult;
+import com.graduation.fitmate.util.BodyAreaMapper;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,7 +42,8 @@ public class WorkoutVideoSearchService {
         }
 
         Query filterQuery = Query.of(query -> query.bool(buildFilterQuery(parsed, relaxGoal).build()));
-        Map<Long, Double> lexicalScores = lexicalSearchSafely(filterQuery, requestText);
+        String expandedSearchText = buildVectorText(parsed, requestText);
+        Map<Long, Double> lexicalScores = lexicalSearchSafely(filterQuery, expandedSearchText);
         Map<Long, Double> vectorScores = vectorSearchSafely(parsed, requestText, filterQuery);
 
         if (lexicalScores.isEmpty() && vectorScores.isEmpty()) {
@@ -174,16 +176,16 @@ public class WorkoutVideoSearchService {
                 .filter(termQuery("active", true))
                 .filter(termQuery("curated", true));
 
-        if (!relaxGoal && hasText(parsed.getGoal())) {
+        if (!relaxGoal && parsed.isExplicitGoal() && hasText(parsed.getGoal())) {
             bool.filter(termQuery("goal", parsed.getGoal()));
         }
-        if (hasText(parsed.getPostureType())) {
+        if (parsed.isExplicitPosture() && hasText(parsed.getPostureType())) {
             bool.filter(termQuery("postureType", parsed.getPostureType()));
         }
-        if (hasText(parsed.getTargetArea())) {
-            bool.filter(termsQuery("targetBodyPart", List.of(parsed.getTargetArea(), "FULL_BODY")));
+        if (parsed.isExplicitTargetArea() && hasText(parsed.getTargetArea())) {
+            bool.filter(termsQuery("targetBodyPart", List.of(BodyAreaMapper.toCanonical(parsed.getTargetArea()), "FULL_BODY")));
         }
-        if (hasText(parsed.getImpactLevel())) {
+        if (parsed.isExplicitImpactLevel() && hasText(parsed.getImpactLevel())) {
             bool.filter(termQuery("impactLevel", parsed.getImpactLevel()));
         }
 
@@ -195,11 +197,14 @@ public class WorkoutVideoSearchService {
         if (parsed.isBackSensitive()) {
             bool.mustNot(termQuery("targetBodyPart", "CORE"));
         }
+        if (parsed.isShoulderSensitive()) {
+            bool.mustNot(termQuery("impactLevel", "HIGH"));
+        }
         return bool;
     }
 
     private void applyEquipmentRules(BoolQuery.Builder bool, ParsedRecommendationRequest parsed) {
-        if (!hasText(parsed.getEquipment())) {
+        if (!parsed.isExplicitEquipment() || !hasText(parsed.getEquipment())) {
             return;
         }
         if ("NONE".equalsIgnoreCase(parsed.getEquipment()) && "SITTING".equalsIgnoreCase(parsed.getPostureType())) {
@@ -220,11 +225,14 @@ public class WorkoutVideoSearchService {
                         parsed.getEquipment(),
                         parsed.getPostureType(),
                         parsed.getTargetArea(),
+                        BodyAreaMapper.toCanonical(parsed.getTargetArea()),
                         parsed.getImpactLevel(),
                         parsed.isKneeSensitive() ? "knee sensitive" : null,
-                        parsed.isBackSensitive() ? "back friendly" : null
+                        parsed.isBackSensitive() ? "back friendly" : null,
+                        parsed.isShoulderSensitive() ? "shoulder mobility rotator cuff shoulder pain recovery" : null
                 )
                 .filter(this::hasText)
+                .distinct()
                 .collect(Collectors.joining(" "));
     }
 

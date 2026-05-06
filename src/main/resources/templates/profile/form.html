@@ -142,13 +142,13 @@
                                 </div>
                             </div>
                             <div class="col-lg-7">
-                                <div class="section-panel h-100">
+                                <div class="section-panel h-100 anatomy-selector">
                                     <h5 class="section-title" th:text="#{profile.body.title}">Target body areas</h5>
                                     <p class="text-muted small mb-3" th:text="#{profile.body.help}">Tap the highlighted muscle regions on the front and back body maps.</p>
                                     <input type="hidden" id="targetAreas" name="targetAreas" th:value="*{targetAreas}">
                                     <div class="body-map-layout">
                                         <div class="body-map-card">
-                                            <div class="body-map-title" th:text="#{profile.body.front}">Front</div>
+                                            <div class="body-map-title floating-map-title" th:text="#{profile.body.front}">Front</div>
                                             <div class="body-map" data-target-input="targetAreas">
                                                 <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{profile.body.frontMap}">
                                                     <g class="body-base">
@@ -157,19 +157,39 @@
                                                         <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
                                                         <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
                                                     </g>
-                                                    <g class="muscle-layer">
-                                                        <path class="muscle-zone" data-value="CHEST" tabindex="0" role="button" aria-label="Chest" d="M88 92 C96 84,104 82,110 86 C116 82,124 84,132 92 L138 118 C132 126,122 132,110 134 C98 132,88 126,82 118 Z"></path>
-                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M54 128 C60 118,70 116,78 122 L76 150 C74 166,74 180,80 196 L68 202 C58 186,52 168,50 150 C48 142,50 134,54 128 Z"></path>
-                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M166 128 C160 118,150 116,142 122 L144 150 C146 166,146 180,140 196 L152 202 C162 186,168 168,170 150 C172 142,170 134,166 128 Z"></path>
-                                                        <path class="muscle-zone" data-value="CORE" tabindex="0" role="button" aria-label="Core" d="M92 142 C98 138,104 136,110 136 C116 136,122 138,128 142 L132 212 C126 220,118 224,110 224 C102 224,94 220,88 212 Z"></path>
-                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M92 232 C100 228,106 228,110 230 L108 386 L88 386 L84 292 C84 268,86 244,92 232 Z"></path>
-                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M128 232 C120 228,114 228,110 230 L112 386 L132 386 L136 292 C136 268,134 244,128 232 Z"></path>
+                                                    <g class="muscle-layer detailed-muscle-layer">
+                                                        <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Left shoulder" d="M78 80 C66 84,58 94,54 108 C60 116,72 117,84 108 C88 96,86 86,78 80 Z"></path>
+                                                        <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Right shoulder" d="M142 80 C154 84,162 94,166 108 C160 116,148 117,136 108 C132 96,134 86,142 80 Z"></path>
+                                                        <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Left upper chest" d="M84 94 C94 86,104 86,110 92 L108 110 C96 112,88 108,80 102 Z"></path>
+                                                        <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Right upper chest" d="M136 94 C126 86,116 86,110 92 L112 110 C124 112,132 108,140 102 Z"></path>
+                                                        <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Left lower chest" d="M82 106 C91 114,100 116,108 112 L106 128 C96 130,86 124,80 116 Z"></path>
+                                                        <path class="muscle-zone muscle-pec" data-value="CHEST" tabindex="0" role="button" aria-label="Right lower chest" d="M138 106 C129 114,120 116,112 112 L114 128 C124 130,134 124,140 116 Z"></path>
+                                                        <path class="muscle-zone muscle-biceps" data-value="BICEPS" tabindex="0" role="button" aria-label="Left biceps" d="M58 120 C66 114,76 116,82 126 L76 158 C70 166,60 164,56 154 Z"></path>
+                                                        <path class="muscle-zone muscle-biceps" data-value="BICEPS" tabindex="0" role="button" aria-label="Right biceps" d="M162 120 C154 114,144 116,138 126 L144 158 C150 166,160 164,164 154 Z"></path>
+                                                        <path class="muscle-zone muscle-forearm" data-value="FOREARMS" tabindex="0" role="button" aria-label="Left forearm" d="M58 162 C64 170,72 172,78 168 L84 198 L70 206 C62 192,56 176,58 162 Z"></path>
+                                                        <path class="muscle-zone muscle-forearm" data-value="FOREARMS" tabindex="0" role="button" aria-label="Right forearm" d="M162 162 C156 170,148 172,142 168 L136 198 L150 206 C158 192,164 176,162 162 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Left upper abs" d="M96 132 L108 130 L108 148 L96 150 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Right upper abs" d="M112 130 L124 132 L124 150 L112 148 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Left middle abs" d="M96 153 L108 152 L108 171 L95 172 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Right middle abs" d="M112 152 L124 153 L125 172 L112 171 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Left lower abs" d="M95 176 L108 176 L108 196 L93 194 Z"></path>
+                                                        <path class="muscle-zone muscle-abs" data-value="ABS" tabindex="0" role="button" aria-label="Right lower abs" d="M112 176 L125 176 L127 194 L112 196 Z"></path>
+                                                        <path class="muscle-zone muscle-oblique" data-value="OBLIQUES" tabindex="0" role="button" aria-label="Left oblique" d="M86 128 C92 146,92 174,88 198 L80 190 C78 164,80 142,86 128 Z"></path>
+                                                        <path class="muscle-zone muscle-oblique" data-value="OBLIQUES" tabindex="0" role="button" aria-label="Right oblique" d="M134 128 C128 146,128 174,132 198 L140 190 C142 164,140 142,134 128 Z"></path>
+                                                        <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Left outer quad" d="M88 226 C94 222,102 224,106 232 L102 302 L86 304 L82 266 C82 248,84 235,88 226 Z"></path>
+                                                        <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Left inner quad" d="M106 232 L111 238 L108 303 L102 303 Z"></path>
+                                                        <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Right inner quad" d="M114 238 L119 232 L118 303 L112 303 Z"></path>
+                                                        <path class="muscle-zone muscle-quad" data-value="QUADS" tabindex="0" role="button" aria-label="Right outer quad" d="M132 226 C126 222,118 224,114 232 L118 302 L134 304 L138 266 C138 248,136 235,132 226 Z"></path>
+                                                        <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Left knee" cx="96" cy="307" rx="9" ry="7"></ellipse>
+                                                        <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Right knee" cx="124" cy="307" rx="9" ry="7"></ellipse>
+                                                        <path class="muscle-zone muscle-shin" data-value="CALVES" tabindex="0" role="button" aria-label="Left shin and calf" d="M88 313 L105 313 L103 386 L88 386 Z"></path>
+                                                        <path class="muscle-zone muscle-shin" data-value="CALVES" tabindex="0" role="button" aria-label="Right shin and calf" d="M115 313 L132 313 L132 386 L117 386 Z"></path>
                                                     </g>
                                                 </svg>
                                             </div>
                                         </div>
                                         <div class="body-map-card">
-                                            <div class="body-map-title" th:text="#{profile.body.back}">Back</div>
+                                            <div class="body-map-title floating-map-title" th:text="#{profile.body.back}">Back</div>
                                             <div class="body-map" data-target-input="targetAreas">
                                                 <svg class="body-figure" viewBox="0 0 220 420" th:attr="aria-label=#{profile.body.backMap}">
                                                     <g class="body-base">
@@ -178,17 +198,38 @@
                                                         <path d="M76 76 L52 126 C48 134,50 148,56 158 L72 184 L84 174 L74 146 L88 122 Z"></path>
                                                         <path d="M144 76 L168 126 C172 134,170 148,164 158 L148 184 L136 174 L146 146 L132 122 Z"></path>
                                                     </g>
-                                                    <g class="muscle-layer">
-                                                        <path class="muscle-zone" data-value="BACK" tabindex="0" role="button" aria-label="Back" d="M88 92 C96 84,104 82,110 86 C116 82,124 84,132 92 L136 126 C130 136,122 144,110 148 C98 144,90 136,84 126 Z"></path>
-                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M54 128 C60 118,70 116,78 122 L76 152 C74 166,74 178,80 194 L68 200 C58 184,52 166,50 148 C48 140,50 132,54 128 Z"></path>
-                                                        <path class="muscle-zone" data-value="ARMS" tabindex="0" role="button" aria-label="Arms" d="M166 128 C160 118,150 116,142 122 L144 152 C146 166,146 178,140 194 L152 200 C162 184,168 166,170 148 C172 140,170 132,166 128 Z"></path>
-                                                        <path class="muscle-zone" data-value="GLUTES" tabindex="0" role="button" aria-label="Glutes" d="M92 182 C98 176,104 174,110 176 C116 174,122 176,128 182 L130 214 C124 220,118 224,110 226 C102 224,96 220,90 214 Z"></path>
-                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M92 232 C100 228,106 228,110 230 L108 386 L88 386 L84 292 C84 268,86 244,92 232 Z"></path>
-                                                        <path class="muscle-zone" data-value="LEGS" tabindex="0" role="button" aria-label="Legs" d="M128 232 C120 228,114 228,110 230 L112 386 L132 386 L136 292 C136 268,134 244,128 232 Z"></path>
+                                                    <g class="muscle-layer detailed-muscle-layer">
+                                                        <path class="muscle-zone muscle-trap" data-value="TRAPS" tabindex="0" role="button" aria-label="Upper traps" d="M92 80 C100 70,120 70,128 80 L120 98 L100 98 Z"></path>
+                                                        <path class="muscle-zone muscle-trap" data-value="UPPER_BACK" tabindex="0" role="button" aria-label="Left mid traps" d="M88 94 C98 86,106 88,110 100 L106 122 L90 116 Z"></path>
+                                                        <path class="muscle-zone muscle-trap" data-value="UPPER_BACK" tabindex="0" role="button" aria-label="Right mid traps" d="M132 94 C122 86,114 88,110 100 L114 122 L130 116 Z"></path>
+                                                        <path class="muscle-zone muscle-lat" data-value="LATS" tabindex="0" role="button" aria-label="Left lat" d="M84 118 C96 134,102 158,106 188 L90 198 C84 174,78 144,84 118 Z"></path>
+                                                        <path class="muscle-zone muscle-lat" data-value="LATS" tabindex="0" role="button" aria-label="Right lat" d="M136 118 C124 134,118 158,114 188 L130 198 C136 174,142 144,136 118 Z"></path>
+                                                        <path class="muscle-zone muscle-spine" data-value="LOWER_BACK" tabindex="0" role="button" aria-label="Left lower back" d="M98 126 L108 130 L107 218 L94 214 Z"></path>
+                                                        <path class="muscle-zone muscle-spine" data-value="LOWER_BACK" tabindex="0" role="button" aria-label="Right lower back" d="M112 130 L122 126 L126 214 L113 218 Z"></path>
+                                                        <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Left rear shoulder" d="M76 84 C86 76,96 78,102 88 L94 106 C84 106,78 98,76 84 Z"></path>
+                                                        <path class="muscle-zone muscle-deltoid" data-value="SHOULDERS" tabindex="0" role="button" aria-label="Right rear shoulder" d="M144 84 C134 76,124 78,118 88 L126 106 C136 106,142 98,144 84 Z"></path>
+                                                        <path class="muscle-zone muscle-triceps" data-value="TRICEPS" tabindex="0" role="button" aria-label="Left triceps" d="M56 124 C64 116,74 118,80 128 L76 164 C70 170,60 164,56 154 Z"></path>
+                                                        <path class="muscle-zone muscle-triceps" data-value="TRICEPS" tabindex="0" role="button" aria-label="Right triceps" d="M164 124 C156 116,146 118,140 128 L144 164 C150 170,160 164,164 154 Z"></path>
+                                                        <path class="muscle-zone muscle-forearm" data-value="FOREARMS" tabindex="0" role="button" aria-label="Left rear forearm" d="M58 166 C64 172,72 174,78 170 L84 198 L70 206 C62 192,56 178,58 166 Z"></path>
+                                                        <path class="muscle-zone muscle-forearm" data-value="FOREARMS" tabindex="0" role="button" aria-label="Right rear forearm" d="M162 166 C156 172,148 174,142 170 L136 198 L150 206 C158 192,164 178,162 166 Z"></path>
+                                                        <path class="muscle-zone muscle-glute" data-value="GLUTES" tabindex="0" role="button" aria-label="Left glute" d="M88 184 C98 176,107 176,111 182 L108 222 C98 226,90 218,86 206 Z"></path>
+                                                        <path class="muscle-zone muscle-glute" data-value="GLUTES" tabindex="0" role="button" aria-label="Right glute" d="M132 184 C122 176,113 176,109 182 L112 222 C122 226,130 218,134 206 Z"></path>
+                                                        <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Left hamstring outer" d="M88 232 C96 228,104 228,109 234 L104 306 L88 306 L84 268 C84 252,85 240,88 232 Z"></path>
+                                                        <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Left hamstring inner" d="M109 236 L114 242 L110 306 L104 306 Z"></path>
+                                                        <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Right hamstring inner" d="M111 242 L116 236 L116 306 L110 306 Z"></path>
+                                                        <path class="muscle-zone muscle-hamstring" data-value="HAMSTRINGS" tabindex="0" role="button" aria-label="Right hamstring outer" d="M132 232 C124 228,116 228,111 234 L116 306 L132 306 L136 268 C136 252,135 240,132 232 Z"></path>
+                                                        <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Left rear knee" cx="96" cy="307" rx="9" ry="7"></ellipse>
+                                                        <ellipse class="muscle-zone muscle-knee" data-value="KNEES" tabindex="0" role="button" aria-label="Right rear knee" cx="124" cy="307" rx="9" ry="7"></ellipse>
+                                                        <path class="muscle-zone muscle-calf" data-value="CALVES" tabindex="0" role="button" aria-label="Left calf" d="M88 314 L106 314 L103 386 L88 386 Z"></path>
+                                                        <path class="muscle-zone muscle-calf" data-value="CALVES" tabindex="0" role="button" aria-label="Right calf" d="M114 314 L132 314 L132 386 L117 386 Z"></path>
                                                     </g>
                                                 </svg>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="selected-muscle-bar mt-3">
+                                        <span class="selected-muscle-label" th:text="#{profile.body.selected}">Selected</span>
+                                        <div class="selected-muscle-list" id="targetAreasPreview"></div>
                                     </div>
                                 </div>
                             </div>
@@ -225,16 +266,62 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const selectedByInput = new Map();
         const setupMultiSelect = (selector) => {
             document.querySelectorAll(selector).forEach((container) => {
                 const inputId = container.dataset.targetInput;
                 const hiddenInput = document.getElementById(inputId);
-                const selected = new Set((hiddenInput.value || '').split(',').map(v => v.trim()).filter(Boolean));
+                if (!selectedByInput.has(inputId)) {
+                    selectedByInput.set(inputId, new Set((hiddenInput.value || '').split(',').map(v => v.trim()).filter(Boolean)));
+                }
+                const selected = selectedByInput.get(inputId);
+                const preview = document.getElementById(`${inputId}Preview`);
+                const labels = {
+                    SHOULDERS: 'Shoulders',
+                    CHEST: 'Chest',
+                    BICEPS: 'Biceps',
+                    TRICEPS: 'Triceps',
+                    FOREARMS: 'Forearms',
+                    ABS: 'Abs',
+                    OBLIQUES: 'Obliques',
+                    TRAPS: 'Traps',
+                    LATS: 'Lats',
+                    UPPER_BACK: 'Upper back',
+                    LOWER_BACK: 'Lower back',
+                    GLUTES: 'Glutes',
+                    QUADS: 'Quads',
+                    HAMSTRINGS: 'Hamstrings',
+                    CALVES: 'Calves',
+                    KNEES: 'Knees',
+                    NONE: 'No equipment',
+                    CHAIR: 'Chair',
+                    BANDS: 'Bands',
+                    DUMBBELL: 'Dumbbell'
+                };
                 const sync = () => {
                     hiddenInput.value = Array.from(selected).join(',');
-                    container.querySelectorAll('[data-value]').forEach((button) => {
-                        button.classList.toggle('active', selected.has(button.dataset.value));
+                    document.querySelectorAll(`[data-target-input="${inputId}"]`).forEach((targetContainer) => {
+                        targetContainer.querySelectorAll('[data-value]').forEach((button) => {
+                            button.classList.toggle('active', selected.has(button.dataset.value));
+                        });
                     });
+                    if (preview) {
+                        preview.innerHTML = '';
+                        const values = Array.from(selected);
+                        if (values.length === 0) {
+                            const empty = document.createElement('span');
+                            empty.className = 'selected-muscle-empty';
+                            empty.textContent = 'No target selected';
+                            preview.appendChild(empty);
+                        } else {
+                            values.forEach((value) => {
+                                const chip = document.createElement('span');
+                                chip.className = 'selected-muscle-chip';
+                                chip.textContent = labels[value] || value;
+                                preview.appendChild(chip);
+                            });
+                        }
+                    }
                 };
                 container.querySelectorAll('[data-value]').forEach((button) => {
                     const toggle = () => {
