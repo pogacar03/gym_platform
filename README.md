@@ -117,6 +117,10 @@ Run the test suite with:
 mvn test
 ```
 
+## Midterm Demo
+
+Use [docs/midterm-demo-checklist.md](/Users/yu/Documents/New%20project/docs/midterm-demo-checklist.md) before meeting your advisor. It includes the startup checks, recommended demo route, stable recommendation prompts, and backup paths for Elasticsearch or LLM issues.
+
 ## Roadmap
 
 - richer muscle-zone interaction and finer body segmentation

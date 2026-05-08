@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{statistics.pageTitle})}"></head>
+<body class="bg-light">
+<div th:replace="~{fragments/nav :: nav}"></div>
+<div class="container page-shell" th:with="view=${dashboard}">
+    <div class="page-hero mb-4">
+        <div>
+            <span class="eyebrow" th:text="#{statistics.eyebrow}">Statistics</span>
+            <h1 class="mb-2" th:text="#{statistics.title}">Training statistics</h1>
+            <p class="text-muted mb-0" th:text="#{statistics.subtitle}">Progress, feedback and training rhythm live here instead of crowding the dashboard.</p>
+        </div>
+    </div>
+
+    <div class="mini-stats mb-4">
+        <div class="mini-stat">
+            <span th:text="#{dashboard.stats.completed}">Completed plans</span>
+            <strong th:text="${view.completedPlanCount}">0</strong>
+        </div>
+        <div class="mini-stat">
+            <span th:text="#{dashboard.stats.recommendations}">Recommendations</span>
+            <strong th:text="${view.recommendationCount}">0</strong>
+        </div>
+        <div class="mini-stat">
+            <span th:text="#{dashboard.weekly}">Weekly consistency</span>
+            <strong><span th:text="${view.completedThisWeekMinutes}"></span>/<span th:text="${view.weeklyTargetMinutes}"></span> min</strong>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm dashboard-card mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-end mb-3 flex-wrap gap-3">
+                        <div>
+                            <span class="eyebrow" th:text="#{dashboard.rhythm.eyebrow}">Weekly rhythm</span>
+                            <h2 class="h3 mb-1" th:text="#{dashboard.rhythm.title}">Plan cadence</h2>
+                            <p class="text-muted mb-0" th:text="#{dashboard.rhythm.subtitle}">Use weekly rhythm to stay consistent.</p>
+                        </div>
+                        <span class="small text-muted" th:text="#{dashboard.rhythm.legend}">Completed days are filled. Planned days are outlined.</span>
+                    </div>
+                    <div class="weekly-rhythm">
+                        <div class="day-pill"
+                             th:each="day : ${view.weeklyRhythm}"
+                             th:classappend="${day.completed} ? ' completed' : (${day.planned} ? ' planned' : '')">
+                            <span th:text="${day.label}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <span class="eyebrow" th:text="#{dashboard.analytics.eyebrow}">Analytics</span>
+                    <h2 class="h3 mb-1" th:text="#{dashboard.analytics.title}">Progress signals</h2>
+                    <p class="text-muted mb-3" th:text="${view.trainingInsight}">Complete a session to unlock personalization signals.</p>
+                    <div class="analytics-grid">
+                        <div class="analytics-panel">
+                            <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.trend}">7-day trend</div>
+                            <div class="trend-bars">
+                                <div class="trend-bar-item" th:each="point : ${view.sevenDayTrend}">
+                                    <div class="trend-bar-track">
+                                        <div class="trend-bar-fill" th:style="'height:' + ${point.percent} + '%'"></div>
+                                    </div>
+                                    <span th:text="${point.label}">Mon</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="analytics-panel">
+                            <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.feedback}">Feedback mix</div>
+                            <div th:if="${!#lists.isEmpty(view.feedbackInsights)}">
+                                <div class="insight-row" th:each="item : ${view.feedbackInsights}">
+                                    <span th:text="${item.label}">Just right</span>
+                                    <div class="insight-bar"><div th:style="'width:' + ${item.percent} + '%'"></div></div>
+                                    <strong th:text="${item.percent + '%'}">0%</strong>
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0" th:if="${#lists.isEmpty(view.feedbackInsights)}" th:text="#{dashboard.analytics.emptyFeedback}">No feedback yet.</p>
+                        </div>
+                        <div class="analytics-panel">
+                            <div class="small fw-semibold mb-3" th:text="#{dashboard.analytics.muscles}">Muscle coverage</div>
+                            <div th:if="${!#lists.isEmpty(view.muscleCoverageInsights)}">
+                                <div class="insight-row" th:each="item : ${view.muscleCoverageInsights}">
+                                    <span th:text="${item.label}">Core</span>
+                                    <div class="insight-bar"><div th:style="'width:' + ${item.percent} + '%'"></div></div>
+                                    <strong th:text="${item.value}">1</strong>
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0" th:if="${#lists.isEmpty(view.muscleCoverageInsights)}" th:text="#{dashboard.analytics.emptyMuscles}">Generate plans to see coverage.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <span class="eyebrow" th:text="#{dashboard.recent.eyebrow}">Recent activity</span>
+                    <h2 class="h4 mb-3" th:text="#{dashboard.recent.title}">Training timeline</h2>
+                    <div class="timeline-list" th:if="${!#lists.isEmpty(view.recentLogs)}">
+                        <div class="timeline-item" th:each="log : ${view.recentLogs}">
+                            <div class="timeline-dot"></div>
+                            <div>
+                                <strong th:text="#{dashboard.recent.completed}">Completed session</strong>
+                                <div class="small text-muted" th:text="${@ui.formatDateTime(log.completedAt)}"></div>
+                                <div class="small text-muted" th:text="${@ui.workoutFeedback(log.feedbackNote)}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-muted" th:if="${#lists.isEmpty(view.recentLogs)}" th:text="#{dashboard.recent.empty}">No workouts logged yet.</div>
+                    <div class="recent-recommendation-card mt-3" th:if="${view.lastRecommendationSummary != null}">
+                        <span class="eyebrow" th:text="#{dashboard.recent.lastRec}">Latest recommendation theme</span>
+                        <p class="mb-0" th:text="${view.lastRecommendationSummary}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

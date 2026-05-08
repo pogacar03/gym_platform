@@ -39,6 +39,12 @@ public class HomeController {
         return "dashboard";
     }
 
+    @GetMapping("/statistics")
+    public String statistics(Principal principal, Model model) {
+        model.addAttribute("dashboard", dashboardService.buildDashboard(principal.getName()));
+        return "statistics";
+    }
+
     @PostMapping("/dashboard/complete-latest")
     public String completeLatestPlan(Principal principal) {
         dashboardService.completeLatestPlan(principal.getName());

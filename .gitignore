@@ -5,3 +5,7 @@ target/
 .DS_Store
 .env
 
+# Local Codex recovery/session dumps. These files can be very large and may
+# contain conversation context that should not be committed.
+rollout-*.jsonl*
+session-*.jsonl*
