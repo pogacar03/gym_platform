@@ -28,7 +28,6 @@ public class RequestParsingService {
         parsed.setEquipment(detectEquipment(text, profile));
         parsed.setPostureType(detectPosture(text, profile));
         parsed.setTargetArea(detectTargetArea(text, profile));
-        parsed.setImpactLevel(detectImpactLevel(text));
         parsed.setKneeSensitive(Boolean.TRUE.equals(profile.getKneeSensitive()) || containsAny(text, "膝", "knee"));
         parsed.setBackSensitive(Boolean.TRUE.equals(profile.getBackSensitive()) || containsAny(text, "腰", "back"));
         String injuryNotes = profile.getInjuryNotes() == null ? "" : profile.getInjuryNotes().toLowerCase(Locale.ROOT);
@@ -36,6 +35,7 @@ public class RequestParsingService {
                 containsAny(text, "肩周炎", "肩痛", "肩膀痛", "肩不舒服", "肩", "shoulder pain", "frozen shoulder", "rotator cuff")
                         || containsAny(injuryNotes, "肩周炎", "肩痛", "肩膀痛", "肩不舒服", "肩", "shoulder pain", "frozen shoulder", "rotator cuff")
         );
+        parsed.setImpactLevel(detectImpactLevel(text, parsed));
 
         if (parsed.isKneeSensitive()) {
             parsed.getSafetyFlags().add("KNEE_SENSITIVE");
@@ -53,13 +53,13 @@ public class RequestParsingService {
     }
 
     private String detectGoal(String text, UserProfile profile) {
-        if (containsAny(text, "减脂", "燃脂", "fat", "weight loss", "slim")) {
+        if (containsAny(text, "减脂", "燃脂", "瘦身", "fat", "weight loss", "lose weight", "slim", "cardio")) {
             return "WEIGHT_LOSS";
         }
         if (containsAny(text, "增肌", "肌肉", "muscle", "tone")) {
             return "MUSCLE_TONE";
         }
-        if (containsAny(text, "恢复", "康复", "缓解", "疼", "痛", "不舒服", "僵硬", "拉伸", "放松",
+        if (containsAny(text, "恢复", "康复", "缓解", "疼", "痛", "不舒服", "僵硬", "拉伸", "放松", "老人", "长者",
                 "mobility", "recovery", "rehab", "pain", "stiff", "relief", "frozen shoulder", "rotator cuff")) {
             return "RECOVERY";
         }
@@ -78,7 +78,8 @@ public class RequestParsingService {
     }
 
     private String detectEquipment(String text, UserProfile profile) {
-        if (containsAny(text, "无器械", "徒手", "bodyweight", "no equipment")) {
+        if (containsAny(text, "无器械", "不用器械", "徒手", "bodyweight", "no equipment", "without equipment",
+                "without any equipment", "don't have equipment", "do not have equipment", "no weights")) {
             return "NONE";
         }
         if (containsAny(text, "弹力带", "band")) {
@@ -170,9 +171,11 @@ public class RequestParsingService {
         return normalizeProfileTarget(firstValue(profile.getTargetAreas(), null));
     }
 
-    private String detectImpactLevel(String text) {
-        if (containsAny(text, "低冲击", "温和", "缓解", "疼", "痛", "不舒服", "僵硬", "康复",
-                "low impact", "gentle", "pain", "stiff", "relief", "rehab")) {
+    private String detectImpactLevel(String text, ParsedRecommendationRequest parsed) {
+        if (parsed.isKneeSensitive() || parsed.isBackSensitive() || parsed.isShoulderSensitive()
+                || containsAny(text, "低冲击", "温和", "缓解", "疼", "痛", "不舒服", "僵硬", "康复", "不要跳", "不跳",
+                "老人", "长者", "low impact", "gentle", "pain", "stiff", "relief", "rehab", "senior", "elderly",
+                "older adult", "no jumping", "without jumping")) {
             return "LOW";
         }
         if (containsAny(text, "高强度", "high intensity", "hiit", "高冲击", "high impact")) {
@@ -185,12 +188,14 @@ public class RequestParsingService {
     }
 
     private boolean hasGoalSignal(String text) {
-        return containsAny(text, "减脂", "燃脂", "增肌", "肌肉", "塑形", "恢复", "康复", "缓解", "疼", "痛", "不舒服", "僵硬", "拉伸", "放松",
-                "fat", "weight loss", "slim", "muscle", "tone", "mobility", "recovery", "rehab", "pain", "stiff", "relief");
+        return containsAny(text, "减脂", "燃脂", "瘦身", "增肌", "肌肉", "塑形", "恢复", "康复", "缓解", "疼", "痛", "不舒服", "僵硬", "拉伸", "放松", "老人", "长者",
+                "fat", "weight loss", "lose weight", "slim", "cardio", "muscle", "tone", "mobility", "recovery", "rehab", "pain", "stiff", "relief", "senior", "elderly", "older adult");
     }
 
     private boolean hasEquipmentSignal(String text) {
-        return containsAny(text, "无器械", "徒手", "弹力带", "椅子", "哑铃", "bodyweight", "no equipment", "band", "chair", "dumbbell");
+        return containsAny(text, "无器械", "不用器械", "徒手", "弹力带", "椅子", "哑铃", "bodyweight", "no equipment",
+                "without equipment", "without any equipment", "don't have equipment", "do not have equipment",
+                "no weights", "band", "chair", "dumbbell");
     }
 
     private boolean hasPostureSignal(String text) {
@@ -207,7 +212,7 @@ public class RequestParsingService {
 
     private boolean hasImpactSignal(String text) {
         return containsAny(text, "低冲击", "温和", "高强度", "高冲击", "中等强度",
-                "low impact", "gentle", "high intensity", "hiit", "high impact", "medium impact", "moderate");
+                "low impact", "gentle", "no jumping", "without jumping", "high intensity", "hiit", "high impact", "medium impact", "moderate");
     }
 
     private String firstValue(String csv, String defaultValue) {

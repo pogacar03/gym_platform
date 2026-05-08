@@ -213,7 +213,9 @@ public class RecommendationService {
         return workoutVideoService.findAllActive().stream()
                 .filter(video -> video.getDurationMinutes() != null)
                 .filter(video -> parsed.getDurationMinutes() == null || video.getDurationMinutes() <= parsed.getDurationMinutes() + 10)
+                .filter(video -> matchesSearchConstraints(video, parsed, true))
                 .filter(video -> !parsed.isKneeSensitive() || !"HIGH".equalsIgnoreCase(video.getImpactLevel()))
+                .filter(video -> !parsed.isKneeSensitive() || !hasHighImpactText(video))
                 .filter(video -> !parsed.isBackSensitive() || !"CORE".equalsIgnoreCase(video.getTargetBodyPart()))
                 .filter(video -> !parsed.isShoulderSensitive() || !"HIGH".equalsIgnoreCase(video.getImpactLevel()))
                 .sorted((left, right) -> Integer.compare(scoreVideo(parsed, right, null), scoreVideo(parsed, left, null)))
@@ -238,10 +240,18 @@ public class RecommendationService {
     ) {
         SearchRetrievalResult retrieval = workoutVideoSearchService.searchCandidateIds(parsed, requestText, relaxGoal);
         if (!retrieval.getCandidateIds().isEmpty()) {
-            List<WorkoutVideo> indexedCandidates = workoutVideoService.findByIdsPreservingOrder(retrieval.getCandidateIds()).stream()
+            List<WorkoutVideo> indexedCandidates = new java.util.ArrayList<>(workoutVideoService.findByIdsPreservingOrder(retrieval.getCandidateIds()).stream()
                     .filter(video -> matchesSearchConstraints(video, parsed, relaxGoal))
-                    .toList();
+                    .toList());
             if (!indexedCandidates.isEmpty()) {
+                if (indexedCandidates.size() < 3) {
+                    List<Long> indexedIds = indexedCandidates.stream().map(WorkoutVideo::getId).toList();
+                    workoutVideoService.findCandidates(query).stream()
+                            .filter(video -> !indexedIds.contains(video.getId()))
+                            .filter(video -> matchesSearchConstraints(video, parsed, relaxGoal))
+                            .limit(3 - indexedCandidates.size())
+                            .forEach(indexedCandidates::add);
+                }
                 return CandidateLookupResult.builder()
                         .videos(indexedCandidates)
                         .retrieval(retrieval)
@@ -317,8 +327,11 @@ public class RecommendationService {
         return value.substring(0, maxLength - 3).trim() + "...";
     }
 
-    private boolean matchesSearchConstraints(WorkoutVideo video, ParsedRecommendationRequest parsed, boolean relaxGoal) {
+    boolean matchesSearchConstraints(WorkoutVideo video, ParsedRecommendationRequest parsed, boolean relaxGoal) {
         if (video.getDurationMinutes() == null) {
+            return false;
+        }
+        if (!isFollowAlongVideo(video)) {
             return false;
         }
         if (!relaxGoal && parsed.isExplicitGoal() && parsed.getGoal() != null && !matches(video.getTargetGoal(), parsed.getGoal())) {
@@ -327,16 +340,31 @@ public class RecommendationService {
         if (parsed.isExplicitDuration()
                 && parsed.getDurationMinutes() != null
                 && video.getDurationMinutes() != null
-                && video.getDurationMinutes() > parsed.getDurationMinutes()) {
+                && video.getDurationMinutes() > parsed.getDurationMinutes() + 5) {
             return false;
         }
         if (parsed.isKneeSensitive() && "HIGH".equalsIgnoreCase(video.getImpactLevel())) {
             return false;
         }
+        if (parsed.isKneeSensitive() && hasHighImpactText(video)) {
+            return false;
+        }
         if (parsed.isBackSensitive() && "CORE".equalsIgnoreCase(video.getTargetBodyPart())) {
             return false;
         }
+        if (parsed.isBackSensitive() && "DUMBBELL".equalsIgnoreCase(video.getEquipmentRequirement())) {
+            return false;
+        }
+        if (parsed.isBackSensitive() && hasHighImpactText(video)) {
+            return false;
+        }
+        if (parsed.isBackSensitive() && parsed.isExplicitTargetArea() && !isBackRelevant(video)) {
+            return false;
+        }
         if (parsed.isShoulderSensitive() && "HIGH".equalsIgnoreCase(video.getImpactLevel())) {
+            return false;
+        }
+        if (parsed.isShoulderSensitive() && "DUMBBELL".equalsIgnoreCase(video.getEquipmentRequirement())) {
             return false;
         }
         if (parsed.isShoulderSensitive() && !isShoulderRelevant(video)) {
@@ -368,11 +396,39 @@ public class RecommendationService {
         return true;
     }
 
+    private boolean isFollowAlongVideo(WorkoutVideo video) {
+        String text = video.getTitle() == null ? "" : video.getTitle().toLowerCase(Locale.ROOT);
+        return containsAny(text,
+                "workout",
+                "exercise",
+                "routine",
+                "follow along",
+                "mobility",
+                "stretch",
+                "rehab",
+                "flow",
+                "cardio",
+                "training",
+                "strength",
+                "pilates",
+                "yoga",
+                "walk",
+                "分钟");
+    }
+
+    private boolean hasHighImpactText(WorkoutVideo video) {
+        String text = videoText(video);
+        if (containsAny(text, "hiit", "burpee", "burpees", "plyo")) {
+            return true;
+        }
+        if (containsAny(text, "no jumping", "without jumping", "low impact")) {
+            return false;
+        }
+        return containsAny(text, "jump", "jumping");
+    }
+
     private boolean isShoulderRelevant(WorkoutVideo video) {
-        String text = Stream.of(video.getTitle(), video.getDescription())
-                .filter(value -> value != null && !value.isBlank())
-                .collect(Collectors.joining(" "))
-                .toLowerCase(Locale.ROOT);
+        String text = videoText(video);
         return containsAny(text,
                 "shoulder",
                 "rotator cuff",
@@ -398,13 +454,28 @@ public class RecommendationService {
                 "分钟");
     }
 
-    private WorkoutVideoQuery toQuery(ParsedRecommendationRequest parsed, boolean relaxGoal) {
+    private boolean isBackRelevant(WorkoutVideo video) {
+        String title = video.getTitle() == null ? "" : video.getTitle().toLowerCase(Locale.ROOT);
+        String description = video.getDescription() == null ? "" : video.getDescription().toLowerCase(Locale.ROOT);
+        return "BACK".equalsIgnoreCase(video.getTargetBodyPart())
+                || containsAny(title, "back", "lower back", "low back", "腰", "stretch", "mobility", "flow")
+                || containsAny(description, "lower back", "low back", "back pain", "腰");
+    }
+
+    private String videoText(WorkoutVideo video) {
+        return Stream.of(video.getTitle(), video.getDescription(), video.getExtraTags(), video.getSafetyNotes())
+                .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.joining(" "))
+                .toLowerCase(Locale.ROOT);
+    }
+
+    WorkoutVideoQuery toQuery(ParsedRecommendationRequest parsed, boolean relaxGoal) {
         WorkoutVideoQuery query = new WorkoutVideoQuery();
         query.setGoal(parsed.isExplicitGoal() ? parsed.getGoal() : null);
-        query.setMaxDurationMinutes(parsed.isExplicitDuration() ? parsed.getDurationMinutes() : null);
+        query.setMaxDurationMinutes(parsed.isExplicitDuration() ? parsed.getDurationMinutes() + 5 : null);
         query.setEquipment(parsed.isExplicitEquipment() ? parsed.getEquipment() : null);
         query.setPostureType(parsed.isExplicitPosture() ? parsed.getPostureType() : null);
-        query.setTargetArea(parsed.isExplicitTargetArea() ? parsed.getTargetArea() : null);
+        query.setTargetArea(parsed.isExplicitTargetArea() ? BodyAreaMapper.toCanonical(parsed.getTargetArea()) : null);
         query.setImpactLevel(parsed.isExplicitImpactLevel() ? parsed.getImpactLevel() : null);
         query.setKneeSensitive(parsed.isKneeSensitive());
         query.setBackSensitive(parsed.isBackSensitive());
@@ -765,7 +836,7 @@ public class RecommendationService {
         ));
     }
 
-    private int scoreVideo(ParsedRecommendationRequest parsed, WorkoutVideo video, String latestFeedbackCode) {
+    int scoreVideo(ParsedRecommendationRequest parsed, WorkoutVideo video, String latestFeedbackCode) {
         int score = 0;
         if (matches(video.getEquipmentRequirement(), parsed.getEquipment())) {
             score += 4;
